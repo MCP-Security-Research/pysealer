@@ -72,8 +72,7 @@ python -c "import vurze; print('Vurze imported successfully!')"
 ```
 
 ```text
-COMMANDS FOR TESTING CLAP CLI
-cargo build
-./target/debug/vurze --help
-./target/debug/vurze decorate example.py
+COMMANDS FOR TESTING CLI
+maturin develop --release
+vurze --help
 ```

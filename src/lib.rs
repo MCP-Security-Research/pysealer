@@ -5,7 +5,8 @@ use parser::add_decorators_to_functions;
 
 /// A Python module implemented in Rust.
 #[pymodule]
-fn vurze(m: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pyo3(name = "_vurze")]
+fn vurze_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(add_decorators_to_functions, m)?)?;
     Ok(())
 }

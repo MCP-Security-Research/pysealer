@@ -5,6 +5,21 @@ target/
 **/*.rs.bk
 **/*.rs.swp
 
+# Python-specific files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+
+# Maturin generated files (avoid committing compiled extensions)
+vurze/_vurze.*.so
+vurze/_vurze.*.dylib
+vurze/_vurze.*.dll
+vurze/_vurze.*.pyd
+
 # Operating System and Editor files (common examples)
 .DS_Store
 .vscode/
@@ -13,3 +28,9 @@ target/
 
 # Virtual environment directories
 .venv/
+env/
+venv/
+
+# Environment files
+.env
+.env.local
