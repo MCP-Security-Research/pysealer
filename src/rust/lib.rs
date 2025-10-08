@@ -3,6 +3,7 @@
 use pyo3::prelude::*;
 
 mod parser;
+mod crypto;
 use parser::add_decorators_to_functions;
 
 /// _vurze pyo3 module definition

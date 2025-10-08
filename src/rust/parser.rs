@@ -1,9 +1,9 @@
 /* Automatically add decorators to all functions and classes in a python file. */
 
 use pyo3::prelude::*;
+use crate::crypto;
 
-/* i need a function that will return x so that i can encrypt it and then add it. just do in add decorators function
-*/
+// need to verify vurze has been imported before this is added
 
 #[pyfunction]
 pub fn add_decorators_to_functions(py: Python, file_path: &str, decorator: &str) -> PyResult<String> {
@@ -34,10 +34,58 @@ pub fn add_decorators_to_functions(py: Python, file_path: &str, decorator: &str)
         // "AsyncFunctionDef" = asynchronous function (async def function_name():)
         // "ClassDef" = class definition (class ClassName:)
         if node_type == "FunctionDef" || node_type == "AsyncFunctionDef" || node_type == "ClassDef" {
-            // Get the decorator_list attribute from the function node
+
+            // Extract the complete source code of this function/class for hashing
+            // Step 1: Clone the node to avoid modifying the original
+            let node_clone = node.call_method0("__deepcopy__")
+                .or_else(|_| {
+                    // If deepcopy fails, try to create a copy through unparsing and reparsing
+                    let source = ast.call_method1("unparse", (&node,))?;
+                    ast.call_method1("parse", (source,))
+                })?;
+            
+            // Step 2: Get decorator_list and filter out vurze decorators
+            if let Ok(decorator_list) = node_clone.getattr("decorator_list") {
+                // Convert to Rust Vec to manipulate
+                let decorators: Vec<PyObject> = decorator_list.extract()?;
+                let mut filtered_decorators = Vec::new();
+                
+                for decorator in decorators {
+                    // Get the decorator name
+                    let decorator_bound = decorator.bind(py);
+                    
+                    // Check if decorator is a Name node with id attribute
+                    if let Ok(decorator_id) = decorator_bound.getattr("id") {
+                        let name: String = decorator_id.extract()?;
+                        // Keep decorator if it doesn't start with "vurze"
+                        if !name.starts_with("vurze") {
+                            filtered_decorators.push(decorator.clone_ref(py));
+                        }
+                    } else {
+                        // If not a simple Name, keep it (could be a decorator with args)
+                        filtered_decorators.push(decorator.clone_ref(py));
+                    }
+                }
+                
+                // Replace decorator_list with filtered version
+                let py_list = pyo3::types::PyList::new(py, &filtered_decorators)?;
+                node_clone.setattr("decorator_list", py_list)?;
+            }
+            
+            // Step 3: Convert the filtered node back to source code
+            let function_source = ast.call_method1("unparse", (node_clone,))?;
+            let source_str: String = function_source.extract()?;
+            
+            // Step 4: Generate hash of the function/class source code
+            let hash = crypto::generate_hash(&source_str);
+            
+            // Step 5: Create decorator with the hash embedded
+            let decorator_with_hash = format!("{}_{}", decorator, hash);
+
+            // Get the decorator_list attribute from the original function node
             if let Ok(decorator_list) = node.getattr("decorator_list") {
                 // Create a new AST Name node for the decorator
-                let name_node = ast.call_method1("Name", (decorator, ast.getattr("Load")?,))?;
+                let name_node = ast.call_method1("Name", (&decorator_with_hash, ast.getattr("Load")?,))?;
                 // Append the decorator to the function's decorator list as the first decorator
                 decorator_list.call_method1("insert", (0, name_node))?;
             }
@@ -55,4 +103,5 @@ pub fn add_decorators_to_functions(py: Python, file_path: &str, decorator: &str)
 /* i need a function that will extract all of the decorators from a python file that are named x 
 and call the cryptographic function to verify that the hash matches. return true if it does
 */
+// pub fn verify_decorators_for_functions()
 
