@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Command-line interface for vurze.
 
@@ -12,7 +11,7 @@ import sys
 import os
 from pathlib import Path
 
-from ...vurze import add_decorators_to_functions
+from vurze import add_decorators_to_functions
 
 
 def main():

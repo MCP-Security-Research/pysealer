@@ -1,8 +1,8 @@
-"""
-vurze - Version control your Python functions
+"""Vurze package entry point
 
-A tool that automatically adds cryptographic decorators to Python functions
-to help detect potential security threats and code modifications.
+This package serves as a bridge between the Python command line interface and the
+underlying Rust implementation (compiled as _vurze module). It exposes the
+core functionality for adding version control decorators to Python functions.
 """
 
 from ._vurze import add_decorators_to_functions
