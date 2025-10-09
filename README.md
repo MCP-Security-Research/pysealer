@@ -1,14 +1,14 @@
 # vurze
 
-version control your python functions
+Version control your Python functions and classes with automated cryptographic decorator injection.
 
 high level overview:
 
-A rust based pypi package that automatically adds decorators to all functions in a python file.
-Also supports command line arguments for checking the version of functions ---> clap cli package
+A python and rust based pypi package that automatically adds decorators to all functions and classses in a python file.
+Also supports command line arguments for automatically adding the decoratos, and checking the version of functions
 x
 Have an decorator for every function and class in a python file ---> py03 rust python language bindings and use the python ast module
-The decorator will use asymmetric encryption to ensure that the functions do not get updated ---> ____decide later_____
+The decorator will use some sort of hashing/encryption to ensure both authorship and integrity of the function. i want to make sure that the function has not been tampered with
 The private key could be stored in the users .env file
 Basically it will act as a checksum to help detect potential security threats
 x
@@ -26,37 +26,12 @@ vurze/
 ├── Cargo.toml                      # Rust package configuration
 ├── pyproject.toml                  # Python package metadata
 ├── README.md
-├── .gitignore
-│
-├── src/                            # Rust source code
-│   ├── lib.rs                      # Main library entry, PyO3 bindings
-│   ├── cli.rs                      # Clap CLI implementation
-│   ├── parser.rs                   # Python AST parsing logic
-│   ├── decorator.rs                # Decorator injection logic
-│   ├── crypto.rs                   # Asymmetric encryption/verification
-│   └── utils.rs                    # Helper functions
-│
-├── python/                         # Python-side code (if needed)
-│   ├── __init__.py
-│   └── runtime.py                  # Runtime decorator verification logic
-│
-├── tests/
-│   ├── test_parser.rs              # Rust unit tests
-│   ├── test_crypto.rs
-│   ├── test_cli.rs
-│   └── test_integration.py         # Python integration tests
-│
-├── examples/
-│   ├── example_script.py           # Sample Python file for testing
-│   └── protected_script.py         # Example of protected code
-│
-├── docs/
-│   ├── architecture.md
-│   ├── security_model.md
-│   └── usage.md
-│
-└── .env.example                   # Example environment file for keys
+... and so on
 ```
+
+--------------------------------------------------------
+
+development notes:
 
 ```text
 COMMANDS I FOLLOWED TO SETUP MATURIN:
