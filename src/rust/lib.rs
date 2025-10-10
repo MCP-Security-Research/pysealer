@@ -1,11 +1,11 @@
-/* Defines the _vurze module which contains the parser and cyrptographic checks. */
+//! Defines the _vurze module which contains all of the Rust code that can be imported into Python.
 
 use pyo3::prelude::*;
 
 mod crypto;
 
 /// Generate a complete signature package for data
-/// Returns (hash, signature, public_key)
+/// Returns (hash, signature, public_key) 
 #[pyfunction]
 fn generate_signature_package(data: &str, private_key_hex: &str) -> PyResult<(String, String, String)> {
     crypto::generate_signature_package(data, private_key_hex)

@@ -1,4 +1,4 @@
-/* Use SHA-256 to sign functions and classes in a python file. */
+//! Cryptographic utilities for SHA-256 hashing and Ed25519 signing.
 
 use sha2::{Sha256, Digest};
 use ed25519_dalek::{Signer, Verifier, SigningKey, VerifyingKey, Signature};
@@ -79,31 +79,20 @@ pub fn verify_signature(data: &str, signature_hex: &str, public_key_hex: &str) -
 }
 
 /// Generate a complete signature package for data
-/// Returns (hash, signature, public_key)
+/// Returns (hash, signature, public_key, private_key)
 /// This combines SHA-256 hashing for integrity and Ed25519 signing for authorship
-pub fn generate_signature_package(data: &str, private_key_hex: &str) -> Result<(String, String, String), String> {
+/// A new keypair is generated for each signature
+pub fn generate_signature_package(data: &str) -> Result<(String, String, String, String), String> {
+    // Generate a new keypair
+    let (private_key, public_key) = generate_keypair();
+    
     // Generate hash for integrity
     let hash = generate_hash(data);
     
     // Sign the hash for authorship
-    let signature = sign_data(&hash, private_key_hex)?;
+    let signature = sign_data(&hash, &private_key)?;
     
-    // Derive public key from private key
-    let private_key_bytes = hex::decode(private_key_hex)
-        .map_err(|e| format!("Invalid private key hex: {}", e))?;
-    
-    if private_key_bytes.len() != 32 {
-        return Err("Private key must be 32 bytes".to_string());
-    }
-    
-    let mut key_array = [0u8; 32];
-    key_array.copy_from_slice(&private_key_bytes);
-    
-    let signing_key = SigningKey::from_bytes(&key_array);
-    let verifying_key = signing_key.verifying_key();
-    let public_key = hex::encode(verifying_key.to_bytes());
-    
-    Ok((hash, signature, public_key))
+    Ok((hash, signature, public_key, private_key))
 }
 
 /// Verify a complete signature package
