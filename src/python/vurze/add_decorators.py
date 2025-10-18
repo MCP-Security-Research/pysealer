@@ -2,7 +2,8 @@
 
 import ast
 import copy
-
+from vurze import generate_signature
+from .setup import get_private_key
 
 def add_decorators_to_functions(file_path: str) -> str:
     """
@@ -36,48 +37,76 @@ def add_decorators_to_functions(file_path: str) -> str:
             
             # Extract the complete source code of this function/class for hashing
             # Step 1: Create a deep copy of the node to avoid modifying the original
-            try:
-                node_clone = copy.deepcopy(node)
-            except Exception:
-                # If deepcopy fails, try to create a copy through unparsing and reparsing
-                source = ast.unparse(node)
-                node_clone = ast.parse(source)
+            node_clone = copy.deepcopy(node)
             
             # Step 2: Get decorator_list and filter out vurze decorators
             if hasattr(node_clone, 'decorator_list'):
                 filtered_decorators = []
                 
                 for decorator in node_clone.decorator_list:
-                    # Check if decorator is a Name node with id attribute
-                    if isinstance(decorator, ast.Name) and hasattr(decorator, 'id'):
-                        # Keep decorator if it doesn't start with "vurze"
-                        if not decorator.id.startswith("vurze"):
-                            filtered_decorators.append(decorator)
-                    else:
-                        # If not a simple Name, keep it (could be a decorator with args)
+                    should_keep = True
+                    
+                    # Check if decorator is a simple Name node starting with "vurze"
+                    if isinstance(decorator, ast.Name):
+                        if decorator.id.startswith("vurze"):
+                            should_keep = False
+                    
+                    # Check if decorator is an Attribute node (e.g., vurze.something)
+                    elif isinstance(decorator, ast.Attribute):
+                        if isinstance(decorator.value, ast.Name) and decorator.value.id == "vurze":
+                            should_keep = False
+                    
+                    # Check if decorator is a Call node
+                    elif isinstance(decorator, ast.Call):
+                        func = decorator.func
+                        # Check if call is to vurze.something()
+                        if isinstance(func, ast.Attribute):
+                            if isinstance(func.value, ast.Name) and func.value.id == "vurze":
+                                should_keep = False
+                        # Check if call is to vurze_something()
+                        elif isinstance(func, ast.Name) and func.id.startswith("vurze"):
+                            should_keep = False
+                    
+                    if should_keep:
                         filtered_decorators.append(decorator)
                 
                 # Replace decorator_list with filtered version
                 node_clone.decorator_list = filtered_decorators
             
             # Step 3: Convert the filtered node back to source code
-            function_source = ast.unparse(node_clone)
+            # Wrap in a Module for proper unparsing
+            module_wrapper = ast.Module(body=[node_clone], type_ignores=[])
+            function_source = ast.unparse(module_wrapper)
             
-            # Step 4: Generate hash of the function/class source code
-            '''
-            // generate keypair --> this only is done once???
-            // generate sig package
-            '''
-            # Step 5: Create decorator with the hash embedded (format: @vurze._<hash>())
-            # decorator_name = f"vurze._{hash_value}"
-            # vurze.protect(x, x, x)
+            # Step 4: Generate hash and signature of the function/class source code
+            # Get the private key from .env file
+            try:
+                private_key = get_private_key()
+            except (FileNotFoundError, ValueError) as e:
+                raise RuntimeError(f"Cannot add decorators: {e}. Please run 'vurze init' first.")
             
+            # Generate cryptographic signature of the source code
+            try:
+                signature = generate_signature(function_source, private_key)
+            except Exception as e:
+                raise RuntimeError(f"Failed to generate signature: {e}")
+            
+            # Step 5: Create decorator with the signature as the function name
+            # Format: @vurze._<signature>()
             # Get the decorator_list attribute from the original function node
             if hasattr(node, 'decorator_list'):
-                # Create a new AST Name node for the decorator
-                # This creates the equivalent of: @vurze._<hash>()
-                name_node = ast.Name(id=decorator_name, ctx=ast.Load())
-                call_node = ast.Call(func=name_node, args=[], keywords=[])
+                # Create AST nodes for: vurze._<signature>()
+                # This builds: Attribute(value=Name('vurze'), attr='_<signature>')
+                vurze_name = ast.Name(id='vurze', ctx=ast.Load())
+                # Use underscore prefix followed by the signature as the attribute name
+                signature_attr = ast.Attribute(value=vurze_name, attr=f'_{signature}', ctx=ast.Load())
+                
+                # Create the call node: vurze._<signature>()
+                call_node = ast.Call(
+                    func=signature_attr,
+                    args=[],
+                    keywords=[]
+                )
                 
                 # Insert the decorator at the beginning of the decorator list
                 node.decorator_list.insert(0, call_node)

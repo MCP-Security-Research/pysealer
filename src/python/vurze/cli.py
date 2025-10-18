@@ -13,6 +13,7 @@ import sys
 from pathlib import Path
 
 from .setup import setup_keypair
+from .add_decorators import add_decorators_to_functions
 
 def main():
     """Main CLI entry point."""
@@ -106,7 +107,24 @@ def handle_init(args):
 def handle_decorate(args):
     """Handle the decorate command."""
     file_path = str(Path(args.file_path).resolve())
-    return 1
+    
+    try:
+        # Add decorators to all functions and classes in the file
+        modified_code = add_decorators_to_functions(file_path)
+        
+        # Write the modified code back to the file
+        with open(file_path, 'w') as f:
+            f.write(modified_code)
+        
+        print(f"✓ Successfully added decorators to {file_path}")
+        return 0
+        
+    except RuntimeError as e:
+        print(f"Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        print(f"Unexpected error while decorating file: {e}", file=sys.stderr)
+        return 1
 
 
 def handle_check(args):

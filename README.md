@@ -105,3 +105,5 @@ problems:
 console print
 and ruff for linting code
 should i lint my rust code?
+ill probobly have to fix my import paths for python at some point
+fix recursive function calls. is there a more reliable way to change the code
