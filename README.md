@@ -81,10 +81,10 @@ vurze --help
 
 todo:
 
-- remove decorator functionanlity
-- use typer python library for cli. use more advanced libraries for tool.
-- update the cli to use rich console for better
-- luman art deco implementation for decorators
+- luman art deco implementation for decorators, just adding decorators does not work, i need to verify that code runs the same after they have been added
+- lumans art deco needs integrated with both add and remove?
+- how does vurze currently handle imports of itself from the cli?? explore???
+
 - create a finalized readme file
 - hook up to pypi for first release and set up github actions for publishing / releasing
 
