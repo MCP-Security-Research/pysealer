@@ -26,7 +26,7 @@ def setup_keypair(env_path: Optional[str | Path] = None):
         existing_public = os.getenv("VURZE_PUBLIC_KEY")
         
         if existing_private or existing_public:
-            raise ValueError(f"Keys already exist in {env_path}. Cannot overwrite existing keys.")
+            raise ValueError(f"Keys already exist in {env_path} Cannot overwrite existing keys.")
     
     # Create .env if it doesn't exist
     env_path.touch(exist_ok=True)
