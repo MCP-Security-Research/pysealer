@@ -19,12 +19,13 @@
 - make the tool conform to ruff linting standards
 - you can use maturin's sphinx generation for documentation?
 - update to use ____ to lint rust code
+- create a standalone install script other than using pip/uv
 - add boxes to the readme file. for compatable python versions, for tool version, and more
 - have a code review from professor
 
 ---
 
-commands:
+development commands:
 
 ```text
 COMMANDS I FOLLOWED TO SETUP MATURIN:
@@ -42,3 +43,10 @@ COMMANDS FOR TESTING CLI
 maturin develop --release
 vurze --help
 ```
+
+release commands:
+
+update the version in the init.py file, pyproject.toml, and Cargo.toml files
+maturin build --release
+git tag v0.1.0
+git push origin v0.1.0

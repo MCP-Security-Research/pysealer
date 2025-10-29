@@ -22,7 +22,11 @@ vurze helps you maintain code integrity by automatically adding cryptographic si
 
 ## Getting Started
 
-installation information
+```shell
+pip install vurze
+# or
+uv pip install vurze
+```
 
 ## Usage
 
