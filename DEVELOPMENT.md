@@ -1,6 +1,5 @@
 # Development TODOs
 
-- code docs and reamde
 - create a finalized readme file
 - hook up to pypi for first release and set up github actions for publishing / releasing
 
@@ -18,4 +17,26 @@
 - update to use ruff to lint python code
 - make the tool conform to ruff linting standards
 - update to use ____ to lint rust code
+- add boxes to the readme file. for compatable python versions, for tool version, and more
 - have a code review from professor
+
+---
+
+commands:
+
+```text
+COMMANDS I FOLLOWED TO SETUP MATURIN:
+uv venv
+source .venv/bin/activate
+uv tool install maturin
+maturin init
+select pyo3
+
+COMMANDS I FOLLOWED TO TEST MATURIN INITIALLY:
+maturin develop
+python -c "import vurze; print('Vurze imported successfully!')"
+
+COMMANDS FOR TESTING CLI
+maturin develop --release
+vurze --help
+```

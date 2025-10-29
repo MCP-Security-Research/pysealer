@@ -1,14 +1,15 @@
-# Vurze
+# vurze
 
 Version control your Python functions and classes with automated cryptographic decorator injection
 
-- ⚡️ **Lightning Fast** - Built with Rust for maximum performance
-- 🔐 **Cryptographic Security** - Ed25519 signatures ensure code integrity and authorship
-- 🛠️ **CLI & Library** - Use as a command-line tool or import as a Python package
-- 🔍 **Attack Detection** - Automatically detects tampering with function code or docstrings
-- 📦 **PyO3 Powered** - Seamless Python-Rust integration via PyO3 bindings
+> 💡 **code version controls code**
 
-vurze helps you maintain code integrity by automatically adding cryptographic signatures to your Python functions and classes. Each function receives a unique decorator containing a cryptographic signature that verifies both authorship and integrity, making it easy to detect tool poisoning attacks and unauthorized code modifications.
+- 🦀 Built with the [maturin build system](https://www.maturin.rs/) for easy Rust-Python packaging
+- 🔗 [PyO3](https://pyo3.rs/v0.27.1/index.html) bindings for seamless Python-Rust integration
+- 🔏 [Ed25519](https://docs.rs/ed25519-dalek/latest/ed25519_dalek/) signatures to ensure code integrity and authorship
+- 🖥️ [Typer](https://typer.tiangolo.com/) for a clean and user-friendly command line interface
+
+vurze helps you maintain code integrity by automatically adding cryptographic signatures to your Python functions and classes. Each function or class receives a unique decorator containing a cryptographic signature that verifies both authorship and integrity, making it easy to detect unauthorized code modifications.
 
 ## Table of Contents
 
@@ -57,24 +58,3 @@ x
 ## License
 
 vurze is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
-
-development notes:
-
-```text
-COMMANDS I FOLLOWED TO SETUP MATURIN:
-uv venv
-source .venv/bin/activate
-uv tool install maturin
-maturin init
-select pyo3
-
-COMMANDS I FOLLOWED TO TEST MATURIN INITIALLY:
-maturin develop
-python -c "import vurze; print('Vurze imported successfully!')"
-
-COMMANDS FOR TESTING CLI
-maturin develop --release
-vurze --help
-```
