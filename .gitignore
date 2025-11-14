@@ -34,3 +34,6 @@ venv/
 # Environment files
 .env
 .env.local
+
+# Pytest Coverage files
+.coverage

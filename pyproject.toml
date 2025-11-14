@@ -45,3 +45,17 @@ Issues = "https://github.com/MCP-Security-Research/vurze/issues"
 features = ["pyo3/extension-module"]
 module-name = "vurze._vurze"
 python-source = "src/python"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v -s --cov=vurze"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.21.0"
+]
