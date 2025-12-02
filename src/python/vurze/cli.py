@@ -72,7 +72,7 @@ def decorate(
             
             typer.echo(typer.style(f"Successfully added decorators to {len(decorated_files)} file(s):", fg=typer.colors.BLUE, bold=True))
             for file in decorated_files:
-                typer.echo(f"  ✓ {file}")
+                typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {file}")
         
         # Handle file path
         else:
@@ -89,7 +89,8 @@ def decorate(
             with open(resolved_path, 'w') as f:
                 f.write(modified_code)
             
-            typer.echo(typer.style(f"Successfully added decorators to {resolved_path}", fg=typer.colors.BLUE, bold=True))
+            typer.echo(typer.style(f"Successfully added decorators to 1 file(s):", fg=typer.colors.BLUE, bold=True))
+            typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
         
     except (RuntimeError, FileNotFoundError, NotADirectoryError, ValueError) as e:
         typer.echo(typer.style(f"Error: {e}", fg=typer.colors.RED, bold=True), err=True)
@@ -139,21 +140,34 @@ def check(
                 total_decorated += decorated_count
                 total_valid += valid_count
                 
-                if decorated_count > 0:
-                    if valid_count == decorated_count:
-                        typer.echo(typer.style(f"✓ {file_path}: All {decorated_count} decorator(s) valid", fg=typer.colors.GREEN))
-                    else:
-                        typer.echo(typer.style(f"✗ {file_path}: {decorated_count - valid_count}/{decorated_count} decorator(s) failed", fg=typer.colors.RED))
-                        files_with_issues.append(file_path)
+                # Track files with validation failures
+                if decorated_count > 0 and valid_count < decorated_count:
+                    files_with_issues.append(file_path)
             
-            # Summary
-            typer.echo("\n" + "="*50)
+            # Summary header
             if total_decorated == 0:
                 typer.echo("⚠️  No vurze decorators found in any files.")
             elif total_valid == total_decorated:
                 typer.echo(typer.style(f"All {total_decorated} decorator(s) across {total_files} file(s) are valid!", fg=typer.colors.BLUE, bold=True))
             else:
-                typer.echo(typer.style(f"✗ {total_decorated - total_valid}/{total_decorated} decorator(s) failed verification across {len(files_with_issues)} file(s)!", fg=typer.colors.RED, bold=True), err=True)
+                typer.echo(typer.style(f"{total_decorated - total_valid}/{total_decorated} decorator(s) failed verification across {len(files_with_issues)} file(s)!", fg=typer.colors.BLUE, bold=True), err=True)
+            
+            # File-by-file details
+            for file_path, results in all_results.items():
+                if "error" in results:
+                    continue
+                
+                decorated_count = sum(1 for r in results.values() if r["has_decorator"])
+                valid_count = sum(1 for r in results.values() if r["valid"])
+                
+                if decorated_count > 0:
+                    if valid_count == decorated_count:
+                        typer.echo(f"{typer.style('✓', fg=typer.colors.GREEN)} {file_path}: {typer.style(f'All {decorated_count} decorator(s) valid', fg=typer.colors.GREEN)}")
+                    else:
+                        typer.echo(f"{typer.style('✗', fg=typer.colors.RED)} {file_path}: {typer.style(f'{decorated_count - valid_count}/{decorated_count} decorator(s) failed', fg=typer.colors.RED)}")
+            
+            # Exit with error if there were failures
+            if total_decorated > 0 and total_valid < total_decorated:
                 raise typer.Exit(code=1)
         
         # Handle file path
@@ -174,9 +188,11 @@ def check(
             if decorated_count == 0:
                 typer.echo("⚠️  No vurze decorators found in this file.")
             elif valid_count == decorated_count:
-                typer.echo(typer.style("All decorators are valid!", fg=typer.colors.BLUE, bold=True))
+                typer.echo(typer.style(f"All {decorated_count} decorator(s) across 1 file(s) are valid!", fg=typer.colors.BLUE, bold=True))
+                typer.echo(f"{typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}: {typer.style(f'All {decorated_count} decorator(s) valid', fg=typer.colors.GREEN)}")
             else:
-                typer.echo(typer.style(f"✗ {decorated_count - valid_count} decorator(s) failed verification!", fg=typer.colors.RED, bold=True), err=True)
+                typer.echo(typer.style(f"{decorated_count - valid_count}/{decorated_count} decorator(s) failed verification across 1 file(s)!", fg=typer.colors.BLUE, bold=True), err=True)
+                typer.echo(f"{typer.style('✗', fg=typer.colors.RED)} {resolved_path}: {typer.style(f'{decorated_count - valid_count}/{decorated_count} decorator(s) failed', fg=typer.colors.RED)}")
                 raise typer.Exit(code=1)
     
     except (FileNotFoundError, NotADirectoryError, ValueError) as e:
@@ -208,7 +224,7 @@ def remove(
             if modified_files:
                 typer.echo(typer.style(f"Successfully removed decorators from {len(modified_files)} file(s):", fg=typer.colors.BLUE, bold=True))
                 for file in modified_files:
-                    typer.echo(f"  ✓ {file}")
+                    typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {file}")
             else:
                 typer.echo("⚠️  No vurze decorators found in any files.")
         
