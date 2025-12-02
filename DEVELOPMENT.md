@@ -3,6 +3,7 @@
 - use vurze to automatically add decorators as a vs code extension + vurze as a pre-commmit hook for checking whether decorators are valid?
 - use git api to track diffs?
 - make it be able to work with multiple files at once
+- clean up and standardize output for multifile
 
 ---
 

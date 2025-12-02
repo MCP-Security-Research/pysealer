@@ -17,7 +17,7 @@ from typing_extensions import Annotated
 
 from .setup import setup_keypair
 from .add_decorators import add_decorators, add_decorators_to_folder
-from .check_decorators import check_decorators
+from .check_decorators import check_decorators, check_decorators_in_folder
 from .remove_decorators import remove_decorators
 
 app = typer.Typer(
@@ -103,36 +103,84 @@ def decorate(
 def check(
     file_path: Annotated[
         str,
-        typer.Argument(help="Path to the Python file to check")
+        typer.Argument(help="Path to the Python file or folder to check")
     ]
 ):
-    """Check the integrity of decorators in a Python file."""
+    """Check the integrity of decorators in a Python file or all Python files in a folder."""
     path = Path(file_path)
     
-    # Validate file exists
+    # Validate path exists
     if not path.exists():
-        typer.echo(typer.style(f"Error: File '{path}' does not exist.", fg=typer.colors.RED, bold=True), err=True)
+        typer.echo(typer.style(f"Error: Path '{path}' does not exist.", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
     
-    # Validate it's a Python file
-    if not path.suffix == '.py':
-        typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
-        raise typer.Exit(code=1)
+    try:
+        # Handle folder path
+        if path.is_dir():
+            resolved_path = str(path.resolve())
+            all_results = check_decorators_in_folder(resolved_path)
+            
+            total_decorated = 0
+            total_valid = 0
+            total_files = 0
+            files_with_issues = []
+            
+            for file_path, results in all_results.items():
+                # Skip files with errors
+                if "error" in results:
+                    typer.echo(typer.style(f"✗ {file_path}: {results['error']}", fg=typer.colors.RED))
+                    files_with_issues.append(file_path)
+                    continue
+                
+                total_files += 1
+                decorated_count = sum(1 for r in results.values() if r["has_decorator"])
+                valid_count = sum(1 for r in results.values() if r["valid"])
+                
+                total_decorated += decorated_count
+                total_valid += valid_count
+                
+                if decorated_count > 0:
+                    if valid_count == decorated_count:
+                        typer.echo(typer.style(f"✓ {file_path}: All {decorated_count} decorator(s) valid", fg=typer.colors.GREEN))
+                    else:
+                        typer.echo(typer.style(f"✗ {file_path}: {decorated_count - valid_count}/{decorated_count} decorator(s) failed", fg=typer.colors.RED))
+                        files_with_issues.append(file_path)
+            
+            # Summary
+            typer.echo("\n" + "="*50)
+            if total_decorated == 0:
+                typer.echo("⚠️  No vurze decorators found in any files.")
+            elif total_valid == total_decorated:
+                typer.echo(typer.style(f"All {total_decorated} decorator(s) across {total_files} file(s) are valid!", fg=typer.colors.BLUE, bold=True))
+            else:
+                typer.echo(typer.style(f"✗ {total_decorated - total_valid}/{total_decorated} decorator(s) failed verification across {len(files_with_issues)} file(s)!", fg=typer.colors.RED, bold=True), err=True)
+                raise typer.Exit(code=1)
+        
+        # Handle file path
+        else:
+            # Validate it's a Python file
+            if not path.suffix == '.py':
+                typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
+                raise typer.Exit(code=1)
+            
+            # Check all decorators in the file
+            resolved_path = str(path.resolve())
+            results = check_decorators(resolved_path)
+            
+            # Return success if all decorated functions are valid
+            decorated_count = sum(1 for r in results.values() if r["has_decorator"])
+            valid_count = sum(1 for r in results.values() if r["valid"])
+            
+            if decorated_count == 0:
+                typer.echo("⚠️  No vurze decorators found in this file.")
+            elif valid_count == decorated_count:
+                typer.echo(typer.style("All decorators are valid!", fg=typer.colors.BLUE, bold=True))
+            else:
+                typer.echo(typer.style(f"✗ {decorated_count - valid_count} decorator(s) failed verification!", fg=typer.colors.RED, bold=True), err=True)
+                raise typer.Exit(code=1)
     
-    # Check all decorators in the file
-    resolved_path = str(path.resolve())
-    results = check_decorators(resolved_path)
-    
-    # Return success if all decorated functions are valid
-    decorated_count = sum(1 for r in results.values() if r["has_decorator"])
-    valid_count = sum(1 for r in results.values() if r["valid"])
-    
-    if decorated_count == 0:
-        typer.echo("⚠️  No vurze decorators found in this file.")
-    elif valid_count == decorated_count:
-        typer.echo(typer.style("All decorators are valid!", fg=typer.colors.BLUE, bold=True))
-    else:
-        typer.echo(typer.style(f"✗ {decorated_count - valid_count} decorator(s) failed verification!", fg=typer.colors.RED, bold=True), err=True)
+    except (FileNotFoundError, NotADirectoryError, ValueError) as e:
+        typer.echo(typer.style(f"Error: {e}", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
 
 

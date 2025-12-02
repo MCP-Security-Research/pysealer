@@ -2,6 +2,7 @@
 
 import ast
 import copy
+from pathlib import Path
 from typing import Dict
 from vurze import verify_signature
 from .setup import get_public_key
@@ -140,3 +141,39 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
             results[name] = result
     
     return results
+
+
+def check_decorators_in_folder(folder_path: str) -> Dict[str, Dict[str, dict]]:
+    """
+    Check decorators in all Python files in a folder.
+    
+    Args:
+        folder_path: Path to the folder containing Python files
+        
+    Returns:
+        Dictionary mapping file paths to their verification results
+    """
+    folder = Path(folder_path)
+    
+    if not folder.exists():
+        raise FileNotFoundError(f"Folder '{folder_path}' does not exist.")
+    
+    if not folder.is_dir():
+        raise NotADirectoryError(f"'{folder_path}' is not a directory.")
+    
+    # Find all Python files in the folder (non-recursive)
+    python_files = list(folder.glob('*.py'))
+    
+    if not python_files:
+        raise ValueError(f"No Python files found in '{folder_path}'.")
+    
+    all_results = {}
+    
+    for py_file in python_files:
+        try:
+            results = check_decorators(str(py_file))
+            all_results[str(py_file)] = results
+        except Exception as e:
+            all_results[str(py_file)] = {"error": str(e)}
+    
+    return all_results
