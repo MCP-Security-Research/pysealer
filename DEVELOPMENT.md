@@ -2,8 +2,6 @@
 
 - use vurze to automatically add decorators as a vs code extension + vurze as a pre-commmit hook for checking whether decorators are valid?
 - use git api to track diffs?
-- clean up and standardize output for multifile
-- add tests for multi file
 
 ---
 
@@ -19,6 +17,7 @@
 - can my tool be attacked by adding soooooo many decorators? like should i create a limit?
 - can my tool be used against itself to attack itself
 - does my tool remove decorators that are automatically created? like does it clean up after itself properly?
+- add tests for multi file
 
 - what sort of attack should i demonstrate? how can I demonstrate this?
 - how can my tool be used to prevent this attack? (add clear use cases and descriptions to the readme)
