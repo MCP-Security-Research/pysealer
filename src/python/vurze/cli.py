@@ -3,11 +3,12 @@ Command-line interface for vurze.
 
 Commands:
 - init: Initialize vurze with a new keypair and .env file.
-- decorate: Add vurze decorators to all functions and classes in a Python file.
+- lock: Add vurze decorators to all functions and classes in a Python file.
 - check: Check the integrity and validity of vurze decorators in a Python file.
 - remove: Remove all vurze decorators from a Python file.
 
 Use `vurze --help` to see available options and command details.
+Use `vurze --version` to see the current version of vurze installed.
 """
 
 from pathlib import Path
@@ -39,7 +40,7 @@ def version_callback(value: bool):
 def version(
     version: Annotated[
         bool,
-        typer.Option("--version", "-v", help="Show version and exit", callback=version_callback, is_eager=True)
+        typer.Option("--version", help="Report the current version of vurze installed.", callback=version_callback, is_eager=True)
     ] = False
 ):
     """Report the current version of vurze installed."""
@@ -69,7 +70,7 @@ def init(
 
 
 @app.command()
-def decorate(
+def lock(
     file_path: Annotated[
         str,
         typer.Argument(help="Path to the Python file or folder to decorate")
@@ -115,7 +116,7 @@ def decorate(
         typer.echo(typer.style(f"Error: {e}", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
     except Exception as e:
-        typer.echo(typer.style(f"Unexpected error while decorating: {e}", fg=typer.colors.RED, bold=True), err=True)
+        typer.echo(typer.style(f"Unexpected error while locking file: {e}", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
 
 
