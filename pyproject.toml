@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "pyseal"
-version = "0.1.0"
+version = "0.1.3"
 description = "Cryptographically sign Python functions and classes for defense-in-depth security"
 authors = [
     {name = "Aidan Dyga"}
