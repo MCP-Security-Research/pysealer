@@ -1,4 +1,4 @@
-"""Remove cryptographic pyseal decorators from all functions and classes in a Python file."""
+"""Remove cryptographic pysealer decorators from all functions and classes in a Python file."""
 
 import ast
 from typing import List, Tuple, Dict
@@ -6,7 +6,7 @@ from pathlib import Path
 
 def remove_decorators(file_path: str) -> Tuple[str, bool]:
     """
-    Parse a Python file, remove all @pyseal.* decorators from functions and classes, and return the modified code.
+    Parse a Python file, remove all @pysealer.* decorators from functions and classes, and return the modified code.
 
     Args:
         file_path: Path to the Python file to process
@@ -24,21 +24,21 @@ def remove_decorators(file_path: str) -> Tuple[str, bool]:
         if type(node).__name__ in ("FunctionDef", "AsyncFunctionDef", "ClassDef"):
             if hasattr(node, 'decorator_list'):
                 for decorator in node.decorator_list:
-                    is_pyseal_decorator = False
+                    is_pysealer_decorator = False
                     if isinstance(decorator, ast.Name):
-                        if decorator.id.startswith("pyseal"):
-                            is_pyseal_decorator = True
+                        if decorator.id.startswith("pysealer"):
+                            is_pysealer_decorator = True
                     elif isinstance(decorator, ast.Attribute):
-                        if isinstance(decorator.value, ast.Name) and decorator.value.id == "pyseal":
-                            is_pyseal_decorator = True
+                        if isinstance(decorator.value, ast.Name) and decorator.value.id == "pysealer":
+                            is_pysealer_decorator = True
                     elif isinstance(decorator, ast.Call):
                         func = decorator.func
                         if isinstance(func, ast.Attribute):
-                            if isinstance(func.value, ast.Name) and func.value.id == "pyseal":
-                                is_pyseal_decorator = True
-                        elif isinstance(func, ast.Name) and func.id.startswith("pyseal"):
-                            is_pyseal_decorator = True
-                    if is_pyseal_decorator:
+                            if isinstance(func.value, ast.Name) and func.value.id == "pysealer":
+                                is_pysealer_decorator = True
+                        elif isinstance(func, ast.Name) and func.id.startswith("pysealer"):
+                            is_pysealer_decorator = True
+                    if is_pysealer_decorator:
                         lines_to_remove.add(decorator.lineno - 1)
 
     found = len(lines_to_remove) > 0
@@ -51,7 +51,7 @@ def remove_decorators(file_path: str) -> Tuple[str, bool]:
 
 def remove_decorators_from_folder(folder_path: str) -> List[str]:
     """
-    Remove pyseal decorators from all Python files in a folder (recursively).
+    Remove pysealer decorators from all Python files in a folder (recursively).
 
     Args:
         folder_path: Path to the folder to process

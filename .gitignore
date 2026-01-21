@@ -15,10 +15,10 @@ dist/
 build/
 
 # Maturin generated files (avoid committing compiled extensions)
-pyseal/_pyseal.*.so
-pyseal/_pyseal.*.dylib
-pyseal/_pyseal.*.dll
-pyseal/_pyseal.*.pyd
+pysealer/_pysealer.*.so
+pysealer/_pysealer.*.dylib
+pysealer/_pysealer.*.dll
+pysealer/_pysealer.*.pyd
 
 # Operating System and Editor files (common examples)
 .DS_Store

@@ -12,7 +12,7 @@ authors = [
 requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "MIT"}
-keywords = ["rust", "python", "decorator", "cryptography"]
+keywords = ["rust","python","decorator","cryptography"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -35,7 +35,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pyseal = "pyseal.cli:main"
+pysealer = "pysealer.cli:main"
 
 [project.urls]
 Repository = "https://github.com/MCP-Security-Research/pysealer"
@@ -43,7 +43,7 @@ Issues = "https://github.com/MCP-Security-Research/pysealer/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
-module-name = "pyseal._pyseal"
+module-name = "pysealer._pysealer"
 python-source = "src/python"
 
 [tool.pytest.ini_options]
@@ -51,7 +51,7 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
-addopts = "-v -s --cov=pyseal"
+addopts = "-v -s --cov=pysealer"
 
 [project.optional-dependencies]
 test = [

@@ -3,7 +3,7 @@
 import ast
 import copy
 from pathlib import Path
-from pyseal import generate_signature
+from pysealer import generate_signature
 from .setup import get_private_key
 
 def add_decorators(file_path: str) -> str:
@@ -23,18 +23,18 @@ def add_decorators(file_path: str) -> str:
     # Split content into lines for manipulation
     lines = content.split('\n')
 
-    # Dynamically add 'import pyseal' grouped with other imports if not present
-    has_import_pyseal = any(
-        line.strip() == 'import pyseal' or line.strip().startswith('import pyseal') or line.strip().startswith('from pyseal')
+    # Dynamically add 'import pysealer' grouped with other imports if not present
+    has_import_pysealer = any(
+        line.strip() == 'import pysealer' or line.strip().startswith('import pysealer') or line.strip().startswith('from pysealer')
         for line in lines
     )
-    if not has_import_pyseal:
+    if not has_import_pysealer:
         # Find the import block
         import_indices = [i for i, line in enumerate(lines) if line.strip().startswith('import ') or line.strip().startswith('from ')]
         if import_indices:
             # Insert after the last import in the block
             last_import = import_indices[-1]
-            lines.insert(last_import + 1, 'import pyseal')
+            lines.insert(last_import + 1, 'import pysealer')
         else:
             # No import block found, insert after shebang/docstring/comments as before
             insert_at = 0
@@ -50,35 +50,35 @@ def add_decorators(file_path: str) -> str:
                         insert_at += 1
                 else:
                     insert_at += 1
-            lines.insert(insert_at, 'import pyseal')
+            lines.insert(insert_at, 'import pysealer')
 
     # Parse the Python source code into an Abstract Syntax Tree (AST)
     content = '\n'.join(lines)
     tree = ast.parse(content)
     
-    # First pass: Remove existing pyseal decorators
+    # First pass: Remove existing pysealer decorators
     lines_to_remove = set()
     for node in ast.walk(tree):
         if type(node).__name__ in ("FunctionDef", "AsyncFunctionDef", "ClassDef"):
             if hasattr(node, 'decorator_list'):
                 for decorator in node.decorator_list:
-                    is_pyseal_decorator = False
+                    is_pysealer_decorator = False
                     
                     if isinstance(decorator, ast.Name):
-                        if decorator.id.startswith("pyseal"):
-                            is_pyseal_decorator = True
+                        if decorator.id.startswith("pysealer"):
+                            is_pysealer_decorator = True
                     elif isinstance(decorator, ast.Attribute):
-                        if isinstance(decorator.value, ast.Name) and decorator.value.id == "pyseal":
-                            is_pyseal_decorator = True
+                        if isinstance(decorator.value, ast.Name) and decorator.value.id == "pysealer":
+                            is_pysealer_decorator = True
                     elif isinstance(decorator, ast.Call):
                         func = decorator.func
                         if isinstance(func, ast.Attribute):
-                            if isinstance(func.value, ast.Name) and func.value.id == "pyseal":
-                                is_pyseal_decorator = True
-                        elif isinstance(func, ast.Name) and func.id.startswith("pyseal"):
-                            is_pyseal_decorator = True
+                            if isinstance(func.value, ast.Name) and func.value.id == "pysealer":
+                                is_pysealer_decorator = True
+                        elif isinstance(func, ast.Name) and func.id.startswith("pysealer"):
+                            is_pysealer_decorator = True
                     
-                    if is_pyseal_decorator:
+                    if is_pysealer_decorator:
                         # Mark this line for removal (convert to 0-indexed)
                         lines_to_remove.add(decorator.lineno - 1)
     
@@ -116,23 +116,23 @@ def add_decorators(file_path: str) -> str:
         # Extract the complete source code of this function/class for hashing
         node_clone = copy.deepcopy(node)
 
-        # Filter out pyseal decorators
+        # Filter out pysealer decorators
         if hasattr(node_clone, 'decorator_list'):
             filtered_decorators = []
             for decorator in node_clone.decorator_list:
                 should_keep = True
                 if isinstance(decorator, ast.Name):
-                    if decorator.id.startswith("pyseal"):
+                    if decorator.id.startswith("pysealer"):
                         should_keep = False
                 elif isinstance(decorator, ast.Attribute):
-                    if isinstance(decorator.value, ast.Name) and decorator.value.id == "pyseal":
+                    if isinstance(decorator.value, ast.Name) and decorator.value.id == "pysealer":
                         should_keep = False
                 elif isinstance(decorator, ast.Call):
                     func = decorator.func
                     if isinstance(func, ast.Attribute):
-                        if isinstance(func.value, ast.Name) and func.value.id == "pyseal":
+                        if isinstance(func.value, ast.Name) and func.value.id == "pysealer":
                             should_keep = False
-                    elif isinstance(func, ast.Name) and func.id.startswith("pyseal"):
+                    elif isinstance(func, ast.Name) and func.id.startswith("pysealer"):
                         should_keep = False
                 if should_keep:
                     filtered_decorators.append(decorator)
@@ -144,7 +144,7 @@ def add_decorators(file_path: str) -> str:
         try:
             private_key = get_private_key()
         except (FileNotFoundError, ValueError) as e:
-            raise RuntimeError(f"Cannot add decorators: {e}. Please run 'pyseal init' first.")
+            raise RuntimeError(f"Cannot add decorators: {e}. Please run 'pysealer init' first.")
 
         try:
             signature = generate_signature(function_source, private_key)
@@ -163,7 +163,7 @@ def add_decorators(file_path: str) -> str:
     # Add decorators to the lines
     for line_idx, col_offset, signature in decorators_to_add:
         indent = ' ' * col_offset
-        decorator_line = f"{indent}@pyseal._{signature}()"
+        decorator_line = f"{indent}@pysealer._{signature}()"
         lines.insert(line_idx, decorator_line)
 
     # Join lines back together

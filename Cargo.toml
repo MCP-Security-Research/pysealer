@@ -5,11 +5,11 @@ edition = "2021"
 description = "Cryptographically sign Python functions and classes for defense-in-depth security."
 license = "MIT"
 repository = "https://github.com/MCP-Security-Research/pysealer"
-keywords = ["rust", "python", "decorator", "cryptography"]
+keywords = ["rust","python","decorator","cryptography"]
 
 # Rust-Python Bindings Library
 [lib]
-name = "_pyseal"
+name = "_pysealer"
 path = "src/rust/lib.rs"
 crate-type = ["cdylib"]
 

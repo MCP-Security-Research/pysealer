@@ -1,4 +1,4 @@
-//! Defines the _pyseal module which contains all of the Rust code that can be imported into Python.
+//! Defines the _pysealer module which contains all of the Rust code that can be imported into Python.
 
 use pyo3::prelude::*;
 
@@ -27,9 +27,9 @@ fn verify_signature(data: &str, signature_hex: &str, public_key_hex: &str) -> Py
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e))
 }
 
-/// _pyseal pyo3 module definition
+/// _pysealer pyo3 module definition
 #[pymodule]
-fn _pyseal(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn _pysealer(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(generate_keypair, m)?)?;
     m.add_function(wrap_pyfunction!(generate_signature, m)?)?;
     m.add_function(wrap_pyfunction!(verify_signature, m)?)?;

@@ -1,15 +1,15 @@
-"""Pyseal package entry point
+"""Pysealer package entry point
 
 This package serves as a bridge between the Python command line interface and the
-underlying Rust implementation (compiled as _pyseal module). It exposes the
+underlying Rust implementation (compiled as _pysealer module). It exposes the
 core functionality for adding version control decorators to Python functions.
 
-This module also dynamically provides decorator placeholders (e.g. @pyseal._<sig>)
+This module also dynamically provides decorator placeholders (e.g. @pysealer._<sig>)
 so that decorated functions remain importable.
 """
 
 # Define the rust to python module version and functions
-from ._pyseal import generate_keypair, generate_signature, verify_signature
+from ._pysealer import generate_keypair, generate_signature, verify_signature
 
 __version__ = "0.1.3"
 __all__ = ["generate_keypair", "generate_signature", "verify_signature"]
@@ -21,4 +21,4 @@ from . import dummy_decorators
 def __getattr__(name):
 	if name.startswith("_"):
 		return dummy_decorators._dummy_decorator
-	raise AttributeError(f"module 'pyseal' has no attribute '{name}'")
+	raise AttributeError(f"module 'pysealer' has no attribute '{name}'")

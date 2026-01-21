@@ -1,6 +1,6 @@
-# pyseal
+# pysealer
 
-Cryptographically sign your Python functions and classes to detect version control changes
+Cryptographically sign Python functions and classes for defense-in-depth security
 
 > 💡 **code version controls code**
 
@@ -9,7 +9,7 @@ Cryptographically sign your Python functions and classes to detect version contr
 - 🔏 [Ed25519](https://docs.rs/ed25519-dalek/latest/ed25519_dalek/) signatures to ensure code integrity and authorship
 - 🖥️ [Typer](https://typer.tiangolo.com/) for a clean and user-friendly command line interface
 
-Pyseal helps you maintain code integrity by automatically adding cryptographic signatures to your Python functions and classes. Each function or class receives a unique decorator containing a cryptographic signature that verifies both authorship and integrity, making it easy to detect unauthorized code modifications.
+Pysealer helps you maintain code integrity by automatically adding cryptographic signatures to your Python functions and classes. Each function or class receives a unique decorator containing a cryptographic signature that verifies both authorship and integrity, making it easy to detect unauthorized code modifications.
 
 ## Table of Contents
 
@@ -23,24 +23,24 @@ Pyseal helps you maintain code integrity by automatically adding cryptographic s
 ## Getting Started
 
 ```shell
-pip install pyseal
+pip install pysealer
 # or
-uv pip install pyseal
+uv pip install pysealer
 ```
 
 ## Usage
 
 ```shell
-pyseal init [ENV_FILE]         # Initialize the pyseal tool by generating and saving keys to an ENV_FILE (default: .env)
-pyseal decorate <file.py>...   # Add cryptographic decorators to all functions/classes in one or more .py files
-pyseal check <file.py>...      # Verify the integrity and validity of pyseal decorators in one or more .py files
-pyseal remove <file.py>...     # Remove all pyseal decorators from one or more .py files
-pyseal --help                  # Show all available commands and options
+pysealer init [ENV_FILE]         # Initialize the pysealer tool by generating and saving keys to an ENV_FILE (default: .env)
+pysealer decorate <file.py>...   # Add cryptographic decorators to all functions/classes in one or more .py files
+pysealer check <file.py>...      # Verify the integrity and validity of pysealer decorators in one or more .py files
+pysealer remove <file.py>...     # Remove all pysealer decorators from one or more .py files
+pysealer --help                  # Show all available commands and options
 ```
 
 ## How It Works
 
-Pyseal works by automatically injecting cryptographic decorators into your Python functions and classes. Here’s how the process works:
+Pysealer works by automatically injecting cryptographic decorators into your Python functions and classes. Here's how the process works:
 
 ### Step-by-Step Example
 
@@ -59,14 +59,14 @@ def fibonacci(n):
 #### 1. Decorate the file
 
 ```shell
-pyseal decorate examples/fibonacci.py
+pysealer decorate examples/fibonacci.py
 
 Successfully added decorators to 1 file:
   ✓ /path/to/examples/fibonacci.py
 ```
 
 ```python
-@pyseal._GnCLaWr9B6TD524JZ3v1CENXmo5Drwfgvc9arVagbghQ6hMH4Aqc8whs3Tf57pkTjsAVNDybviW9XG5Eu3JSP6T()
+@pysealer._GnCLaWr9B6TD524JZ3v1CENXmo5Drwfgvc9arVagbghQ6hMH4Aqc8whs3Tf57pkTjsAVNDybviW9XG5Eu3JSP6T()
 def fibonacci(n):
     if n <= 0:
         return 0
@@ -79,7 +79,7 @@ def fibonacci(n):
 #### 2. Check integrity
 
 ```shell
-pyseal check examples/fibonacci.py
+pysealer check examples/fibonacci.py
 
 All decorators are valid in 1 file:
 ✓ /path/to/examples/fibonacci.py: 1 decorators valid
@@ -88,7 +88,7 @@ All decorators are valid in 1 file:
 #### 3. Tamper with the code (change return 0 to return 42)
 
 ```python
-@pyseal._GnCLaWr9B6TD524JZ3v1CENXmo5Drwfgvc9arVagbghQ6hMH4Aqc8whs3Tf57pkTjsAVNDybviW9XG5Eu3JSP6T()
+@pysealer._GnCLaWr9B6TD524JZ3v1CENXmo5Drwfgvc9arVagbghQ6hMH4Aqc8whs3Tf57pkTjsAVNDybviW9XG5Eu3JSP6T()
 def fibonacci(n):
     if n <= 0:
         return 42
@@ -101,7 +101,7 @@ def fibonacci(n):
 #### 4. Check again
 
 ```shell
-pyseal check examples/fibonacci.py
+pysealer check examples/fibonacci.py
 
 1/1 decorators failed verification across 1 file:
   ✗ /path/to/examples/fibonacci.py: 1/1 decorators failed
@@ -109,7 +109,7 @@ pyseal check examples/fibonacci.py
 
 ## Model Context Protocol (MCP) Security Use Cases
 
-One use case of Pyseal is to protect MCP servers from upstream attacks by cryptographically signing tool functions and their docstrings. Since LLMs rely on docstrings to understand tool behavior, attackers can inject malicious instructions or create fake tools that mimic legitimate ones. Pyseal's signatures ensure tool authenticity and detect tampering because any modification to code or docstrings breaks the signature and flags compromised tools.
+One use case of Pysealer is to protect MCP servers from upstream attacks by cryptographically signing tool functions and their docstrings. Since LLMs rely on docstrings to understand tool behavior, attackers can inject malicious instructions or create fake tools that mimic legitimate ones. Pysealer's signatures ensure tool authenticity and detect tampering because any modification to code or docstrings breaks the signature and flags compromised tools.
 
 - **Detect Version Control Changes**
   - Automatically detect unauthorized code modifications through cryptographic signatures
@@ -125,10 +125,10 @@ One use case of Pyseal is to protect MCP servers from upstream attacks by crypto
 
 **🙌 Contributions are welcome!**
 
-If you have suggestions, bug reports, or want to help improve Pyseal, feel free to open an [issue](https://github.com/MCP-Security-Research/pyseal/issues) or submit a pull request.
+If you have suggestions, bug reports, or want to help improve Pysealer, feel free to open an [issue](https://github.com/MCP-Security-Research/pysealer/issues) or submit a pull request.
 
-All ideas and contributions are appreciated—thanks for helping make pyseal better!
+All ideas and contributions are appreciated—thanks for helping make pysealer better!
 
 ## License
 
-Pyseal is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+Pysealer is licensed under the MIT License. See [LICENSE](LICENSE) for details.

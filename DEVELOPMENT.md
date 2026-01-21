@@ -2,9 +2,9 @@
 
 - include the decorators in the signature
 - update readme to refelct new command names, installation, many more
-- make sure the pyseal extension is only used when pyseal is initialized in the project!!!
+- make sure the pysealer extension is only used when pysealer is initialized in the project!!!
 - current most important code todos
-- make pyseal extension more dynamic. what if you dont have it installed and just try extension. try to make cli + extensioni combo as flexible as possible
+- make pysealer extension more dynamic. what if you dont have it installed and just try extension. try to make cli + extensioni combo as flexible as possible
 - add .env to gitignore automatically???, check if a gitignore exists
 - you can use maturin's sphinx generation for documentation? and a cool website
 - update to use ____ to lint rust code and ruff to lint python code
@@ -42,13 +42,13 @@ select pyo3
 
 COMMANDS I FOLLOWED TO TEST MATURIN INITIALLY:
 maturin develop
-python -c "import pyseal; print('Pyseal imported successfully!')"
+python -c "import pysealer; print('Pysealer imported successfully!')"
 
 COMMANDS FOR TESTING CLI
 source .venv/bin/activate
 conda deactivate
 maturin develop --release
-pyseal --help
+pysealer --help
 ```
 
 release commands:
