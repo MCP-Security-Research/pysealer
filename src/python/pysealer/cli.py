@@ -52,22 +52,54 @@ def init(
     env_file: Annotated[
         str,
         typer.Argument(help="Path to the .env file")
-    ] = ".env"
+    ] = ".env",
+    github_token: Annotated[
+        str,
+        typer.Option("--github-token", help="GitHub personal access token for uploading public key to repository secrets")
+    ] = None,
+    skip_github: Annotated[
+        bool,
+        typer.Option("--skip-github", help="Skip GitHub secrets integration")
+    ] = False
 ):
-    """Initialize pysealer with an .env file."""
+    """Initialize pysealer with an .env file and optionally upload public key to GitHub."""
     try:
         env_path = Path(env_file)
         
         # Generate and store keypair (will raise error if keys already exist)
-        setup_keypair(env_path)
+        public_key, private_key = setup_keypair(env_path)
         typer.echo(typer.style("Successfully initialized pysealer!", fg=typer.colors.BLUE, bold=True))
         typer.echo(f"🔑 Keypair generated and stored in {env_path}")
         typer.echo("⚠️  Keep your .env file secure and add it to .gitignore!")
         
+        # GitHub secrets integration (optional)
+        if not skip_github:
+            typer.echo()  # Blank line for readability
+            typer.echo("Attempting to upload public key to GitHub repository secrets...")
+            
+            try:
+                from .github_secrets import setup_github_secrets
+                
+                success, message = setup_github_secrets(public_key, github_token)
+                
+                if success:
+                    typer.echo(typer.style(f"✓ {message}", fg=typer.colors.GREEN))
+                else:
+                    typer.echo(typer.style(f"⚠ Warning: {message}", fg=typer.colors.YELLOW))
+                    typer.echo("  You can manually add the public key to GitHub secrets later.")
+                    typer.echo(f"  Secret name: PYSEALER_PUBLIC_KEY")
+                    typer.echo(f"  Public key: {public_key}")
+                    
+            except ImportError as e:
+                typer.echo(typer.style(f"⚠ Warning: GitHub integration dependencies not installed: {e}", fg=typer.colors.YELLOW))
+                typer.echo("  Install with: pip install PyGithub PyNaCl GitPython")
+            except Exception as e:
+                typer.echo(typer.style(f"⚠ Warning: Failed to upload to GitHub: {e}", fg=typer.colors.YELLOW))
+                typer.echo("  You can manually add the public key to GitHub secrets later.")
+        
     except Exception as e:
         typer.echo(typer.style(f"Error during initialization: {e}", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
-
 
 @app.command()
 def lock(
