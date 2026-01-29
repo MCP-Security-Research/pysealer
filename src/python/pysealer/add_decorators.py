@@ -134,7 +134,13 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
     # Sort in reverse order to add from bottom to top (preserves line numbers)
     decorators_to_add.sort(reverse=True)
 
-    # Add 'import pysealer' if not present
+    # Add decorators to the lines first
+    for line_idx, col_offset, signature in decorators_to_add:
+        indent = ' ' * col_offset
+        decorator_line = f"{indent}@pysealer._{signature}()"
+        lines.insert(line_idx, decorator_line)
+    
+    # Now add 'import pysealer' at the top if not present
     has_import_pysealer = any(
         line.strip() == 'import pysealer' or line.strip().startswith('import pysealer') or line.strip().startswith('from pysealer')
         for line in lines
@@ -151,23 +157,35 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
             insert_at = 0
             if lines and lines[0].startswith('#!'):
                 insert_at = 1
-            while insert_at < len(lines) and (lines[insert_at].strip() == '' or lines[insert_at].strip().startswith('"""') or lines[insert_at].strip().startswith("''")):
-                if lines[insert_at].strip().startswith('"""') or lines[insert_at].strip().startswith("''"):
-                    quote = lines[insert_at].strip()[:3]
+            # Skip module-level docstrings and blank lines
+            while insert_at < len(lines):
+                line = lines[insert_at].strip()
+                if line == '':
                     insert_at += 1
-                    while insert_at < len(lines) and not lines[insert_at].strip().endswith(quote):
+                elif line.startswith('"""') or line.startswith("'''"):
+                    # Handle multi-line docstrings
+                    quote = '"""' if line.startswith('"""') else "'''"
+                    # Check if docstring ends on same line
+                    if line.count(quote) >= 2:
                         insert_at += 1
-                    if insert_at < len(lines):
+                    else:
+                        # Multi-line docstring
                         insert_at += 1
+                        while insert_at < len(lines) and quote not in lines[insert_at]:
+                            insert_at += 1
+                        if insert_at < len(lines):
+                            insert_at += 1
+                elif line.startswith('#'):
+                    # Skip comments
+                    insert_at += 1
                 else:
-                    insert_at += 1
+                    # Found first non-blank, non-comment, non-docstring line
+                    break
+            
             lines.insert(insert_at, 'import pysealer')
-
-    # Add decorators to the lines
-    for line_idx, col_offset, signature in decorators_to_add:
-        indent = ' ' * col_offset
-        decorator_line = f"{indent}@pysealer._{signature}()"
-        lines.insert(line_idx, decorator_line)
+            # Add blank line after import if the next line isn't blank
+            if insert_at + 1 < len(lines) and lines[insert_at + 1].strip() != '':
+                lines.insert(insert_at + 1, '')
 
     # Join lines back together
     modified_code = '\n'.join(lines)
