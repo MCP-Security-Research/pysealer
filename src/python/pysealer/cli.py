@@ -107,6 +107,11 @@ def lock(
         typer.echo(typer.style(f"Error: Path '{path}' does not exist.", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
     
+    # Validate it's a Python file or directory
+    if path.is_file() and path.suffix != '.py':
+        typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
+        raise typer.Exit(code=1)
+    
     try:
         # Handle folder path
         if path.is_dir():
@@ -119,10 +124,6 @@ def lock(
         
         # Handle file path
         else:
-            # Validate it's a Python file
-            if not path.suffix == '.py':
-                typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
-                raise typer.Exit(code=1)
             
             # Add decorators to all functions and classes in the file
             resolved_path = str(path.resolve())
@@ -160,6 +161,11 @@ def check(
     # Validate path exists
     if not path.exists():
         typer.echo(typer.style(f"Error: Path '{path}' does not exist.", fg=typer.colors.RED, bold=True), err=True)
+        raise typer.Exit(code=1)
+    
+    # Validate it's a Python file or directory
+    if path.is_file() and path.suffix != '.py':
+        typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
     
     try:
@@ -219,10 +225,6 @@ def check(
         
         # Handle file path
         else:
-            # Validate it's a Python file
-            if not path.suffix == '.py':
-                typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
-                raise typer.Exit(code=1)
             
             # Check all decorators in the file
             resolved_path = str(path.resolve())
@@ -262,6 +264,11 @@ def remove(
         typer.echo(typer.style(f"Error: Path '{path}' does not exist.", fg=typer.colors.RED, bold=True), err=True)
         raise typer.Exit(code=1)
     
+    # Validate it's a Python file or directory
+    if path.is_file() and path.suffix != '.py':
+        typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
+        raise typer.Exit(code=1)
+    
     try:
         # Handle folder path
         if path.is_dir():
@@ -277,10 +284,6 @@ def remove(
         
         # Handle file path
         else:
-            # Validate it's a Python file
-            if not path.suffix == '.py':
-                typer.echo(typer.style(f"Error: File '{path}' is not a Python file.", fg=typer.colors.RED, bold=True), err=True)
-                raise typer.Exit(code=1)
             
             resolved_path = str(path.resolve())
             modified_code, found = remove_decorators(resolved_path)
