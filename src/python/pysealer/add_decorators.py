@@ -6,7 +6,7 @@ from pathlib import Path
 from pysealer import generate_signature
 from .setup import get_private_key
 
-def add_decorators(file_path: str) -> str:
+def add_decorators(file_path: str) -> tuple[str, bool]:
     """
     Parse a Python file, add decorators to all functions and classes, and return the modified code.
     
@@ -14,7 +14,7 @@ def add_decorators(file_path: str) -> str:
         file_path: Path to the Python file to process
         
     Returns:
-        Modified Python source code as a string
+        Tuple of (modified Python source code as a string, whether any decorators were added)
     """
     # Read the entire file content into a string
     with open(file_path, 'r') as f:
@@ -129,7 +129,7 @@ def add_decorators(file_path: str) -> str:
 
     # If no decorators to add, return original content
     if not decorators_to_add:
-        return content
+        return content, False
     
     # Sort in reverse order to add from bottom to top (preserves line numbers)
     decorators_to_add.sort(reverse=True)
@@ -172,7 +172,7 @@ def add_decorators(file_path: str) -> str:
     # Join lines back together
     modified_code = '\n'.join(lines)
 
-    return modified_code
+    return modified_code, True
 
 
 def add_decorators_to_folder(folder_path: str) -> list[str]:
@@ -204,10 +204,11 @@ def add_decorators_to_folder(folder_path: str) -> list[str]:
     
     for py_file in python_files:
         try:
-            modified_code = add_decorators(str(py_file))
-            with open(py_file, 'w') as f:
-                f.write(modified_code)
-            decorated_files.append(str(py_file))
+            modified_code, has_changes = add_decorators(str(py_file))
+            if has_changes:
+                with open(py_file, 'w') as f:
+                    f.write(modified_code)
+                decorated_files.append(str(py_file))
         except Exception as e:
             errors.append((str(py_file), str(e)))
     

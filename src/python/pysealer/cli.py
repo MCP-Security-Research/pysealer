@@ -135,14 +135,18 @@ def lock(
             
             # Add decorators to all functions and classes in the file
             resolved_path = str(path.resolve())
-            modified_code = add_decorators(resolved_path)
+            modified_code, has_changes = add_decorators(resolved_path)
             
-            # Write the modified code back to the file
-            with open(resolved_path, 'w') as f:
-                f.write(modified_code)
-            
-            typer.echo(typer.style(f"Successfully added decorators to 1 file:", fg=typer.colors.BLUE, bold=True))
-            typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
+            if has_changes:
+                # Write the modified code back to the file
+                with open(resolved_path, 'w') as f:
+                    f.write(modified_code)
+                
+                typer.echo(typer.style(f"Successfully added decorators to 1 file:", fg=typer.colors.BLUE, bold=True))
+                typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
+            else:
+                typer.echo(typer.style(f"No functions or classes found in file:", fg=typer.colors.YELLOW, bold=True))
+                typer.echo(f"  {typer.style('⊘', fg=typer.colors.YELLOW)} {resolved_path}")
         
     except (RuntimeError, FileNotFoundError, NotADirectoryError, ValueError) as e:
         typer.echo(typer.style(f"Error: {e}", fg=typer.colors.RED, bold=True), err=True)
