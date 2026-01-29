@@ -280,7 +280,14 @@ def remove(
                 for file in modified_files:
                     typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {file}")
             else:
-                typer.echo("⚠️  No pysealer decorators found in any files.")
+                # Find all Python files to show in the output
+                python_files = list(path.rglob("*.py"))
+                if python_files:
+                    typer.echo(typer.style(f"No pysealer decorators found in {len(python_files)} files:", fg=typer.colors.YELLOW, bold=True))
+                    for file in python_files:
+                        typer.echo(f"  {typer.style('⊘', fg=typer.colors.YELLOW)} {file.resolve()}")
+                else:
+                    typer.echo(typer.style(f"No Python files found in folder.", fg=typer.colors.YELLOW, bold=True))
         
         # Handle file path
         else:
@@ -295,7 +302,8 @@ def remove(
                 typer.echo(typer.style(f"Successfully removed decorators from 1 file:", fg=typer.colors.BLUE, bold=True))
                 typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
             else:
-                typer.echo(f"⚠️  No pysealer decorators found in {resolved_path}")
+                typer.echo(typer.style(f"No pysealer decorators found in 1 file:", fg=typer.colors.YELLOW, bold=True))
+                typer.echo(f"  {typer.style('⊘', fg=typer.colors.YELLOW)} {resolved_path}")
     
     except (FileNotFoundError, NotADirectoryError, ValueError) as e:
         typer.echo(typer.style(f"Error: {e}", fg=typer.colors.RED, bold=True), err=True)
