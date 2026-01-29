@@ -5,6 +5,7 @@ This module provides functionality to automatically upload the pysealer public k
 to GitHub repository secrets when `pysealer init` is run.
 """
 
+import logging
 import os
 import re
 from pathlib import Path
@@ -13,6 +14,10 @@ from typing import Optional, Tuple
 import git
 from github import Github, GithubException
 from nacl import encoding, public
+
+# Suppress verbose GitHub API logging
+logging.getLogger("github").setLevel(logging.CRITICAL)
+logging.getLogger("urllib3").setLevel(logging.CRITICAL)
 
 
 def get_repo_info() -> Tuple[str, str]:
