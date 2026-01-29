@@ -116,8 +116,8 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
         # Encrypt the secret
         encrypted_value = encrypt_secret(public_key.key, secret_value)
         
-        # Create or update the secret (secret_type="actions" for repository secrets)
-        repo.create_secret(secret_name, encrypted_value, public_key.key_id, secret_type="actions")
+        # Create or update the secret (actions secrets are at repository level)
+        repo.create_secret(secret_name, encrypted_value, secret_type="actions")
         
     except GithubException as e:
         if e.status == 401:
