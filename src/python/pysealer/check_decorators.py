@@ -187,8 +187,8 @@ def check_decorators_in_folder(folder_path: str) -> Dict[str, Dict[str, dict]]:
     if not folder.is_dir():
         raise NotADirectoryError(f"'{folder_path}' is not a directory.")
     
-    # Find all Python files in the folder (non-recursive)
-    python_files = list(folder.glob('*.py'))
+    # Find all Python files in the folder (recursive)
+    python_files = list(folder.rglob('*.py'))
     
     if not python_files:
         raise ValueError(f"No Python files found in '{folder_path}'.")
