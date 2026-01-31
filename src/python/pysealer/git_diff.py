@@ -47,6 +47,9 @@ def get_file_from_git(file_path: str, ref: str = "HEAD") -> Optional[str]:
             return result.stdout
         return None
         
+    except FileNotFoundError:
+        # Git command not found
+        return None
     except (subprocess.TimeoutExpired, subprocess.SubprocessError, ValueError, OSError):
         return None
 
@@ -163,6 +166,21 @@ def generate_function_diff(
                 pass
     
     return result
+
+
+def is_git_available() -> bool:
+    """
+    Check if the current directory is in a git repository.
+    
+    Returns:
+        True if .git directory exists in current or parent directories, False otherwise
+    """
+    current = Path.cwd()
+    # Check current directory and all parent directories
+    for parent in [current] + list(current.parents):
+        if (parent / ".git").exists():
+            return True
+    return False
 
 
 def get_function_diff(

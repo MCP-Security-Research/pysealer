@@ -21,6 +21,7 @@ from .setup import setup_keypair
 from .add_decorators import add_decorators, add_decorators_to_folder
 from .check_decorators import check_decorators, check_decorators_in_folder
 from .remove_decorators import remove_decorators, remove_decorators_from_folder
+from .git_diff import is_git_available
 
 app = typer.Typer(
     name="pysealer",
@@ -191,6 +192,12 @@ def check(
         raise typer.Exit(code=1)
     
     try:
+        # Check if git is available for diff output
+        git_available = is_git_available()
+        if not git_available:
+            typer.echo(typer.style("Note: Git not available - diff output will not be shown for invalid signatures.", fg=typer.colors.YELLOW))
+            typer.echo()
+        
         # Handle folder path
         if path.is_dir():
             resolved_path = str(path.resolve())

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from pysealer import verify_signature
 from .setup import get_public_key
-from .git_diff import get_function_diff
+from .git_diff import get_function_diff, is_git_available
 
 
 def check_decorators(file_path: str) -> Dict[str, dict]:
@@ -127,19 +127,20 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
                 else:
                     result["message"] = "✗ Signature invalid - code may have been modified"
                     
-                    # Try to get git diff for failed validation
-                    try:
-                        diff = get_function_diff(
-                            file_path,
-                            name,
-                            function_source,
-                            node.lineno
-                        )
-                        if diff:
-                            result["diff"] = diff
-                    except Exception:
-                        # If git diff fails, just continue without it
-                        pass
+                    # Try to get git diff for failed validation (only if git is available)
+                    if is_git_available():
+                        try:
+                            diff = get_function_diff(
+                                file_path,
+                                name,
+                                function_source,
+                                node.lineno
+                            )
+                            if diff:
+                                result["diff"] = diff
+                        except Exception:
+                            # If git diff fails, just continue without it
+                            pass
                     
             except Exception as e:
                 result["message"] = f"✗ Error verifying signature: {e}"
