@@ -120,7 +120,6 @@ def init(
                 typer.echo("   You can manually add the PYSEALER_PUBLIC_KEY to GitHub secrets later.")
         
         # Git hook installation (automatic if in git repository)
-        typer.echo()
         if not is_git_repository():
             typer.echo(typer.style("⚠️  Warning: Not a git repository. Skipping hook installation.", fg=typer.colors.YELLOW))
             typer.echo("   Initialize git first with 'git init', then run 'pysealer hook install'")
