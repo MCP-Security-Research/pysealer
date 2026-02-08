@@ -77,6 +77,7 @@ Target pattern: {target_pattern}
 import subprocess
 import sys
 from pathlib import Path
+from fnmatch import fnmatch
 
 
 def get_staged_python_files(pattern="{target_pattern}"):
@@ -95,21 +96,8 @@ def get_staged_python_files(pattern="{target_pattern}"):
         # Filter for Python files matching pattern
         python_files = []
         for file in staged_files:
-            if file and file.endswith(".py"):
-                file_path = Path(file)
-                # Simple pattern matching (supports **/*.py and src/**/*.py patterns)
-                pattern_parts = pattern.split("/")
-                if "**" in pattern:
-                    # Match any .py file if pattern contains **
-                    if pattern.endswith("**/*.py"):
-                        python_files.append(file)
-                    elif len(pattern_parts) > 1:
-                        # Check if file starts with the directory before **
-                        prefix = pattern_parts[0]
-                        if prefix and file.startswith(prefix):
-                            python_files.append(file)
-                elif file.endswith(pattern.replace("*", "")):
-                    python_files.append(file)
+            if file and file.endswith(".py") and fnmatch(file, pattern):
+                python_files.append(file)
         
         return python_files
     except subprocess.CalledProcessError:
@@ -127,50 +115,51 @@ def main():
     print(f"🔒 Pysealer pre-commit hook ({mode} mode)")
     print(f"   Processing {{len(staged_files)}} Python file(s)...")
     
-    # Run pysealer lock on each staged file
-    failed_files = []
-    for file in staged_files:
-        try:
-            result = subprocess.run(
-                ["pysealer", "lock", file],
-                capture_output=True,
-                text=True,
-                check=False
-            )
-            
-            if result.returncode != 0:
-                failed_files.append((file, result.stderr or result.stdout))
-        except FileNotFoundError:
-            print("❌ Error: pysealer command not found")
-            print("   Make sure pysealer is installed: pip install pysealer")
+    # Run pysealer lock on staged files
+    try:
+        result = subprocess.run(
+            ["pysealer", "lock"] + staged_files,
+            capture_output=True,
+            text=True,
+            check=False
+        )
+        
+        if result.returncode != 0:
+            print("❌ Pysealer decorator failed:")
+            print(result.stderr or result.stdout)
             
             if "{mode}" == "mandatory":
+                print("\\n⚠️  Commit blocked. Fix the issues above and try again.")
+                print("   Or temporarily disable with: git commit --no-verify")
                 sys.exit(1)
             else:
-                print("   Proceeding with commit (optional mode)")
+                print("\\n⚠️  Warning: Proceeding with commit (optional mode)")
                 sys.exit(0)
-        except Exception as e:
-            failed_files.append((file, str(e)))
-    
-    # Check if any files failed
-    if failed_files:
-        print("❌ Pysealer failed for the following files:")
-        for file, error in failed_files:
-            print(f"   - {{file}}: {{error}}")
+        
+        # Re-stage the modified files
+        for file in staged_files:
+            subprocess.run(["git", "add", file], check=False)
+        
+        print("✅ Successfully decorated files")
+        sys.exit(0)
+        
+    except FileNotFoundError:
+        print("❌ Error: pysealer command not found")
+        print("   Make sure pysealer is installed: pip install pysealer")
         
         if "{mode}" == "mandatory":
-            print("\\n⚠️  Commit blocked. Fix the issues above and try again.")
-            print("   Or temporarily disable with: git commit --no-verify")
             sys.exit(1)
         else:
-            print("\\n⚠️  Warning: Proceeding with commit (optional mode)")
-    
-    # Re-stage the modified files
-    for file in staged_files:
-        subprocess.run(["git", "add", file], check=False)
-    
-    print("✅ Successfully locked files")
-    sys.exit(0)
+            print("   Proceeding with commit (optional mode)")
+            sys.exit(0)
+    except Exception as e:
+        print(f"❌ Unexpected error: {{e}}")
+        
+        if "{mode}" == "mandatory":
+            sys.exit(1)
+        else:
+            print("   Proceeding with commit (optional mode)")
+            sys.exit(0)
 
 
 if __name__ == "__main__":
