@@ -113,7 +113,6 @@ def main():
         sys.exit(0)
     
     print(f"🔒 Pysealer pre-commit hook ({mode} mode)")
-    print(f"   Processing {{len(staged_files)}} Python file(s)...")
     
     # Run pysealer lock on staged files
     try:
