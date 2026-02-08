@@ -127,50 +127,50 @@ def main():
     print(f"🔒 Pysealer pre-commit hook ({mode} mode)")
     print(f"   Processing {{len(staged_files)}} Python file(s)...")
     
-    # Run pysealer decorate on staged files
-    try:
-        result = subprocess.run(
-            ["pysealer", "decorate"] + staged_files,
-            capture_output=True,
-            text=True,
-            check=False
-        )
-        
-        if result.returncode != 0:
-            print("❌ Pysealer decorator failed:")
-            print(result.stderr or result.stdout)
+    # Run pysealer lock on each staged file
+    failed_files = []
+    for file in staged_files:
+        try:
+            result = subprocess.run(
+                ["pysealer", "lock", file],
+                capture_output=True,
+                text=True,
+                check=False
+            )
+            
+            if result.returncode != 0:
+                failed_files.append((file, result.stderr or result.stdout))
+        except FileNotFoundError:
+            print("❌ Error: pysealer command not found")
+            print("   Make sure pysealer is installed: pip install pysealer")
             
             if "{mode}" == "mandatory":
-                print("\\n⚠️  Commit blocked. Fix the issues above and try again.")
-                print("   Or temporarily disable with: git commit --no-verify")
                 sys.exit(1)
             else:
-                print("\\n⚠️  Warning: Proceeding with commit (optional mode)")
+                print("   Proceeding with commit (optional mode)")
                 sys.exit(0)
-        
-        # Re-stage the modified files
-        for file in staged_files:
-            subprocess.run(["git", "add", file], check=False)
-        
-        print("✅ Successfully decorated files")
-        sys.exit(0)
-        
-    except FileNotFoundError:
-        print("❌ Error: pysealer command not found")
-        print("   Make sure pysealer is installed: pip install pysealer")
+        except Exception as e:
+            failed_files.append((file, str(e)))
+    
+    # Check if any files failed
+    if failed_files:
+        print("❌ Pysealer failed for the following files:")
+        for file, error in failed_files:
+            print(f"   - {{file}}: {{error}}")
         
         if "{mode}" == "mandatory":
+            print("\\n⚠️  Commit blocked. Fix the issues above and try again.")
+            print("   Or temporarily disable with: git commit --no-verify")
             sys.exit(1)
         else:
-            print("   Proceeding with commit (optional mode)")
-            sys.exit(0)
-    except Exception as e:
-        print(f"❌ Unexpected error: {{e}}")
-        
-        if "{mode}" == "mandatory":
-            sys.exit(1)
-        else:
-            sys.exit(0)
+            print("\\n⚠️  Warning: Proceeding with commit (optional mode)")
+    
+    # Re-stage the modified files
+    for file in staged_files:
+        subprocess.run(["git", "add", file], check=False)
+    
+    print("✅ Successfully locked files")
+    sys.exit(0)
 
 
 if __name__ == "__main__":
