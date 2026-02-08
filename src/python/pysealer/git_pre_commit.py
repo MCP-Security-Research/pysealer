@@ -125,7 +125,7 @@ def main():
         )
         
         if result.returncode != 0:
-            print("❌ Pysealer decorator failed:")
+            print("❌ Pysealer lock command failed:")
             print(result.stderr or result.stdout)
             
             if "{mode}" == "mandatory":
@@ -140,7 +140,7 @@ def main():
         for file in staged_files:
             subprocess.run(["git", "add", file], check=False)
         
-        print("✅ Successfully decorated files")
+        print("✅ Successfully locked files")
         sys.exit(0)
         
     except FileNotFoundError:
