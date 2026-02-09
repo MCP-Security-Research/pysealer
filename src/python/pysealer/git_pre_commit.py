@@ -152,11 +152,11 @@ def main():
     # Check if there were any failures
     if failed_files:
         if "{mode}" == "mandatory":
-            print("\\n⚠️  Commit blocked. Fix the issues above and try again.")
+            print("⚠️  Commit blocked. Fix the issues above and try again.")
             print("   Or temporarily disable with: git commit --no-verify")
             sys.exit(1)
         else:
-            print("\\n⚠️  Warning: Proceeding with commit (optional mode)")
+            print("⚠️  Warning: Proceeding with commit (optional mode)")
             sys.exit(0)
     
     print("✅ Successfully locked all files")
