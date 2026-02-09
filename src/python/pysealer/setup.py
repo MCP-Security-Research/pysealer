@@ -73,16 +73,26 @@ def setup_keypair(env_path: Optional[str | Path] = None):
     return private_key_hex, public_key_hex
 
 
-def get_public_key(env_path: Optional[str | Path] = None) -> str:
+def get_public_key(env_path: Optional[str | Path] = None, from_env_only: bool = False) -> str:
     """
-    Retrieve the public key from the .env file.
+    Retrieve the public key from the .env file or environment variables.
     
     Args:
         env_path: Optional path to .env file. If None, searches from current directory upward.
+        from_env_only: If True, only check environment variables, skip .env file lookup.
+                      Useful for CI/CD environments where key is in secrets.
     
     Returns:
         str: The public key hex string, or None if not found.
     """
+    # If from_env_only is True, skip .env file and just check environment
+    if from_env_only:
+        public_key = os.getenv("PYSEALER_PUBLIC_KEY")
+        if public_key is None:
+            raise ValueError("PYSEALER_PUBLIC_KEY not found in environment variables. "
+                           "Set it as an environment variable or GitHub secret.")
+        return public_key
+    
     # Determine .env location
     if env_path is None:
         env_path = _find_env_file()

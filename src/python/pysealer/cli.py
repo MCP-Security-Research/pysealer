@@ -209,7 +209,11 @@ def check(
     file_path: Annotated[
         str,
         typer.Argument(help="Path to the Python file or folder to check")
-    ]
+    ],
+    actions: Annotated[
+        bool,
+        typer.Option("--actions", help="GitHub Actions mode: get the pysealer public key from github actions secrets")
+    ] = False
 ):
     """Check the integrity of decorators in a Python file or all Python files in a folder."""
     path = Path(file_path)
@@ -234,7 +238,7 @@ def check(
         # Handle folder path
         if path.is_dir():
             resolved_path = str(path.resolve())
-            all_results = check_decorators_in_folder(resolved_path)
+            all_results = check_decorators_in_folder(resolved_path, from_env_only=actions)
             
             total_decorated = 0
             total_valid = 0
@@ -304,7 +308,7 @@ def check(
             
             # Check all decorators in the file
             resolved_path = str(path.resolve())
-            results = check_decorators(resolved_path)
+            results = check_decorators(resolved_path, from_env_only=actions)
             
             # Return success if all decorated functions are valid
             decorated_count = sum(1 for r in results.values() if r["has_decorator"])
