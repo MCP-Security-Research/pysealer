@@ -86,7 +86,7 @@ def init(
     ] = "mandatory",
     hook_pattern: Annotated[
         str,
-        typer.Option("--hook-pattern", help="File pattern for hook to process (e.g., '**/*.py' or 'src/**/*.py').")
+        typer.Option("--hook-pattern", help="File pattern for hook to process. Use quotes to prevent shell expansion: '**/*.py' or 'src/**/*.py'")
     ] = "**/*.py"
 ):
     """Initialize pysealer with an .env file and optionally upload public key to GitHub."""
