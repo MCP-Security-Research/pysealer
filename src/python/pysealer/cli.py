@@ -209,11 +209,7 @@ def check(
     file_path: Annotated[
         str,
         typer.Argument(help="Path to the Python file or folder to check")
-    ],
-    actions: Annotated[
-        bool,
-        typer.Option("--actions", help="GitHub Actions mode: get the pysealer public key from github actions secrets")
-    ] = False
+    ]
 ):
     """Check the integrity of decorators in a Python file or all Python files in a folder."""
     path = Path(file_path)
@@ -238,17 +234,19 @@ def check(
         # Handle folder path
         if path.is_dir():
             resolved_path = str(path.resolve())
-            all_results = check_decorators_in_folder(resolved_path, from_env_only=actions)
+            all_results = check_decorators_in_folder(resolved_path)
             
             total_decorated = 0
             total_valid = 0
             files_with_decorators = []
             files_with_issues = []
+            files_with_errors = []
             
             for file_path, results in all_results.items():
-                # Skip files with errors
+                # Track files with errors separately
                 if "error" in results:
                     typer.echo(typer.style(f"✗ {file_path}: {results['error']}", fg=typer.colors.RED))
+                    files_with_errors.append((file_path, results['error']))
                     files_with_issues.append(file_path)
                     continue
                 
@@ -266,7 +264,14 @@ def check(
                         files_with_issues.append(file_path)
             
             # Summary header
-            if total_decorated == 0:
+            if files_with_errors and total_decorated == 0:
+                # All files had errors, couldn't check for decorators
+                error_count = len(files_with_errors)
+                file_word = "file" if error_count == 1 else "files"
+                typer.echo(typer.style(f"\nFailed to check decorators in {error_count} {file_word} due to errors.", fg=typer.colors.RED, bold=True))
+                typer.echo(typer.style("Fix the errors above to verify decorators.", fg=typer.colors.YELLOW))
+                raise typer.Exit(code=1)
+            elif total_decorated == 0:
                 typer.echo(typer.style(f"No pysealer decorators found in folder.", fg=typer.colors.YELLOW, bold=True))
             elif total_valid == total_decorated:
                 file_word = "file" if len(files_with_decorators) == 1 else "files"
@@ -299,8 +304,10 @@ def check(
                                 if result.get("diff"):
                                     _format_diff_output(func_name, result["diff"])
             
-            # Exit with error if there were failures
-            if total_decorated > 0 and total_valid < total_decorated:
+            # Exit with error if there were failures or errors
+            if files_with_errors:
+                raise typer.Exit(code=1)
+            elif total_decorated > 0 and total_valid < total_decorated:
                 raise typer.Exit(code=1)
         
         # Handle file path
@@ -308,7 +315,7 @@ def check(
             
             # Check all decorators in the file
             resolved_path = str(path.resolve())
-            results = check_decorators(resolved_path, from_env_only=actions)
+            results = check_decorators(resolved_path)
             
             # Return success if all decorated functions are valid
             decorated_count = sum(1 for r in results.values() if r["has_decorator"])

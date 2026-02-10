@@ -9,7 +9,7 @@ from .setup import get_public_key
 from .git_diff import get_function_diff, is_git_available
 
 
-def check_decorators(file_path: str, from_env_only: bool = False) -> Dict[str, dict]:
+def check_decorators(file_path: str) -> Dict[str, dict]:
     """
     Parse a Python file and verify all pysealer cryptographic decorators.
     
@@ -18,7 +18,6 @@ def check_decorators(file_path: str, from_env_only: bool = False) -> Dict[str, d
     
     Args:
         file_path: Path to the Python file to verify
-        from_env_only: If True, get public key from environment variables only (for CI/CD)
         
     Returns:
         Dictionary mapping function/class names to their verification results:
@@ -44,9 +43,9 @@ def check_decorators(file_path: str, from_env_only: bool = False) -> Dict[str, d
     
     # Get the public key for verification
     try:
-        public_key = get_public_key(from_env_only=from_env_only)
+        public_key = get_public_key()
     except (FileNotFoundError, ValueError) as e:
-        raise RuntimeError(f"Cannot verify decorators: {e}. Please run 'pysealer init' first.")
+        raise RuntimeError(f"Cannot verify decorators: {e}")
     
     # Dictionary to store results
     results = {}
@@ -151,13 +150,12 @@ def check_decorators(file_path: str, from_env_only: bool = False) -> Dict[str, d
     return results
 
 
-def check_decorators_in_folder(folder_path: str, from_env_only: bool = False) -> Dict[str, Dict[str, dict]]:
+def check_decorators_in_folder(folder_path: str) -> Dict[str, Dict[str, dict]]:
     """
     Check decorators in all Python files in a folder.
     
     Args:
         folder_path: Path to the folder containing Python files
-        from_env_only: If True, get public key from environment variables only (for CI/CD)
         
     Returns:
         Dictionary mapping file paths to their verification results
@@ -180,7 +178,7 @@ def check_decorators_in_folder(folder_path: str, from_env_only: bool = False) ->
     
     for py_file in python_files:
         try:
-            results = check_decorators(str(py_file), from_env_only=from_env_only)
+            results = check_decorators(str(py_file))
             all_results[str(py_file)] = results
         except Exception as e:
             all_results[str(py_file)] = {"error": str(e)}

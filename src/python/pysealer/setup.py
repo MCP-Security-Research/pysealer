@@ -73,26 +73,31 @@ def setup_keypair(env_path: Optional[str | Path] = None):
     return private_key_hex, public_key_hex
 
 
-def get_public_key(env_path: Optional[str | Path] = None, from_env_only: bool = False) -> str:
+def get_public_key(env_path: Optional[str | Path] = None) -> str:
     """
-    Retrieve the public key from the .env file or environment variables.
+    Retrieve the public key from environment variables or .env file.
+    
+    Automatically checks environment variables first (for CI/CD compatibility),
+    then falls back to .env file if not found.
     
     Args:
         env_path: Optional path to .env file. If None, searches from current directory upward.
-        from_env_only: If True, only check environment variables, skip .env file lookup.
-                      Useful for CI/CD environments where key is in secrets.
     
     Returns:
-        str: The public key hex string, or None if not found.
+        str: The public key hex string
+        
+    Raises:
+        FileNotFoundError: If .env file not found and PYSEALER_PUBLIC_KEY not in environment
+        ValueError: If PYSEALER_PUBLIC_KEY not found in .env file
     """
-    # If from_env_only is True, skip .env file and just check environment
-    if from_env_only:
-        public_key = os.getenv("PYSEALER_PUBLIC_KEY")
-        if public_key is None:
-            raise ValueError("PYSEALER_PUBLIC_KEY not found in environment variables. "
-                           "Set it as an environment variable or GitHub secret.")
-        return public_key
+    # Check if PYSEALER_PUBLIC_KEY is available in environment first (CI/CD scenario)
+    public_key_from_env = os.getenv("PYSEALER_PUBLIC_KEY")
     
+    # If we have the key in environment, use it (works in CI without .env file)
+    if public_key_from_env:
+        return public_key_from_env
+    
+    # Otherwise, look for .env file
     # Determine .env location
     if env_path is None:
         env_path = _find_env_file()
@@ -101,7 +106,8 @@ def get_public_key(env_path: Optional[str | Path] = None, from_env_only: bool = 
     
     # Check if .env exists
     if not env_path.exists():
-        raise FileNotFoundError(f"No .env file found at {env_path}. Run setup_keypair() first.")
+        raise FileNotFoundError(f"No .env file found at {env_path} and PYSEALER_PUBLIC_KEY not in environment. "
+                               "Run 'pysealer init' first or set PYSEALER_PUBLIC_KEY environment variable.")
     
     # Load environment variables from .env
     load_dotenv(env_path)
@@ -110,7 +116,7 @@ def get_public_key(env_path: Optional[str | Path] = None, from_env_only: bool = 
     public_key = os.getenv("PYSEALER_PUBLIC_KEY")
     
     if public_key is None:
-        raise ValueError(f"PYSEALER_PUBLIC_KEY not found in {env_path}. Run setup_keypair() first.")
+        raise ValueError(f"PYSEALER_PUBLIC_KEY not found in {env_path}. Run 'pysealer init' first.")
     
     return public_key
 
