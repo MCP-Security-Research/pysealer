@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "pysealer"
-version = "0.8.3"
+version = "0.8.4"
 description = "Cryptographically sign Python functions and classes for defense-in-depth security"
 authors = [
     {name = "Aidan Dyga"}
