@@ -14,7 +14,6 @@ from typing import Optional, Tuple
 import git
 from github import Github, GithubException
 from nacl import encoding, public
-import pysealer
 
 # Suppress verbose GitHub API logging
 logging.getLogger("github").setLevel(logging.CRITICAL)
