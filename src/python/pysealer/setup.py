@@ -44,6 +44,9 @@ def setup_keypair(env_path: Optional[str | Path] = None):
     
     Args:
         env_path: Optional path to .env file. If None, creates in current directory.
+    
+    Returns:
+        tuple[str, str]: (public_key_hex, private_key_hex)
     """
     # Determine .env location
     if env_path is None:
@@ -70,7 +73,7 @@ def setup_keypair(env_path: Optional[str | Path] = None):
     set_key(str(env_path), "PYSEALER_PRIVATE_KEY", private_key_hex)
     set_key(str(env_path), "PYSEALER_PUBLIC_KEY", public_key_hex)
     
-    return private_key_hex, public_key_hex
+    return public_key_hex, private_key_hex
 
 
 def get_public_key(env_path: Optional[str | Path] = None) -> str:
