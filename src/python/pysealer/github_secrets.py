@@ -14,12 +14,14 @@ from typing import Optional, Tuple
 import git
 from github import Github, GithubException
 from nacl import encoding, public
+import pysealer
 
 # Suppress verbose GitHub API logging
 logging.getLogger("github").setLevel(logging.CRITICAL)
 logging.getLogger("urllib3").setLevel(logging.CRITICAL)
 
 
+@pysealer._5W2AxjQefS9CXmuHyFP99yVHEPfjqWRKcD3FJ3xGJbVZQ37jUiBZuXjs3Ebvt2ZHvGR7qLf15m2bKKLeSayjvG2F()
 def get_repo_info() -> Tuple[str, str]:
     """
     Extract GitHub owner and repository name from git remote URL.
@@ -67,6 +69,7 @@ def get_repo_info() -> Tuple[str, str]:
         raise RuntimeError(f"Git error: {e}")
 
 
+@pysealer._3KSj4pa6FCu1YY638kWGepCgYsMcA34S3S1tTdh8L6YWxUHnWb28DtWTQpEzPkrYVcDLaaArNd1FcRJGoYKAPMhe()
 def encrypt_secret(public_key: str, secret_value: str) -> str:
     """
     Encrypt a secret using GitHub's public key.
@@ -93,6 +96,7 @@ def encrypt_secret(public_key: str, secret_value: str) -> str:
     return encoding.Base64Encoder().encode(encrypted).decode("utf-8")
 
 
+@pysealer._rtrCBkx56DhhFH6MWWdyeRrdWS7GSdEeeYtibqwy8FEepYaHGDKwjRLp5pfnaVnjuMMXcYZxdWKHFLa6Re7F4G2()
 def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: str, secret_value: str) -> None:
     """
     Add or update a secret in GitHub repository.
@@ -112,6 +116,15 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
         # Initialize GitHub client
         g = Github(token)
         
+        # First, verify token has access by getting user info
+        try:
+            user = g.get_user()
+            user.login  # Force API call to validate token
+        except GithubException as auth_error:
+            if auth_error.status == 401:
+                raise Exception("Authentication failed. Your GitHub token is invalid or expired.")
+            raise
+        
         # Get the repository
         repo = g.get_repo(f"{owner}/{repo_name}")
         
@@ -126,15 +139,20 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
         
     except GithubException as e:
         if e.status == 401:
-            raise Exception("Authentication failed. Please check your GitHub token.")
+            raise Exception("Authentication failed. Please check your GitHub token is valid.")
         elif e.status == 403:
-            raise Exception("Permission denied. Your token needs 'repo' scope to manage secrets.")
+            raise Exception(f"Permission denied (HTTP {e.status}). Your token needs 'repo' scope to manage secrets. "
+                          f"For organization repositories like '{owner}/{repo_name}', you may also need admin:org scope or "
+                          f"the token must be authorized for the organization.")
         elif e.status == 404:
-            raise Exception(f"Repository '{owner}/{repo_name}' not found or you don't have access.")
+            raise Exception(f"Repository '{owner}/{repo_name}' not found or you don't have access (HTTP {e.status}). "
+                          f"Verify the repository exists and your token has access to it.")
         else:
-            raise Exception(f"GitHub API error: {e.data.get('message', str(e))}")
+            error_msg = e.data.get('message', str(e)) if hasattr(e, 'data') else str(e)
+            raise Exception(f"GitHub API error (HTTP {e.status}): {error_msg}")
 
 
+@pysealer._ZqP3XJ3svrj1joxfetu9xiDPKp5ULFgFWWFjZ5cUuVPRUXqenwkYut7v978vhFQEzS3yLPqN5iFyncfP7E2kEpf()
 def setup_github_secrets(public_key: str, github_token: Optional[str] = None) -> Tuple[bool, str]:
     """
     Main function to orchestrate GitHub secrets setup.
