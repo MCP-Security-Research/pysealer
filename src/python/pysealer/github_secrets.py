@@ -21,7 +21,6 @@ logging.getLogger("github").setLevel(logging.CRITICAL)
 logging.getLogger("urllib3").setLevel(logging.CRITICAL)
 
 
-@pysealer._5W2AxjQefS9CXmuHyFP99yVHEPfjqWRKcD3FJ3xGJbVZQ37jUiBZuXjs3Ebvt2ZHvGR7qLf15m2bKKLeSayjvG2F()
 def get_repo_info() -> Tuple[str, str]:
     """
     Extract GitHub owner and repository name from git remote URL.
@@ -69,7 +68,6 @@ def get_repo_info() -> Tuple[str, str]:
         raise RuntimeError(f"Git error: {e}")
 
 
-@pysealer._3KSj4pa6FCu1YY638kWGepCgYsMcA34S3S1tTdh8L6YWxUHnWb28DtWTQpEzPkrYVcDLaaArNd1FcRJGoYKAPMhe()
 def encrypt_secret(public_key: str, secret_value: str) -> str:
     """
     Encrypt a secret using GitHub's public key.
@@ -96,7 +94,6 @@ def encrypt_secret(public_key: str, secret_value: str) -> str:
     return encoding.Base64Encoder().encode(encrypted).decode("utf-8")
 
 
-@pysealer._rtrCBkx56DhhFH6MWWdyeRrdWS7GSdEeeYtibqwy8FEepYaHGDKwjRLp5pfnaVnjuMMXcYZxdWKHFLa6Re7F4G2()
 def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: str, secret_value: str) -> None:
     """
     Add or update a secret in GitHub repository.
@@ -152,7 +149,6 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
             raise Exception(f"GitHub API error (HTTP {e.status}): {error_msg}")
 
 
-@pysealer._ZqP3XJ3svrj1joxfetu9xiDPKp5ULFgFWWFjZ5cUuVPRUXqenwkYut7v978vhFQEzS3yLPqN5iFyncfP7E2kEpf()
 def setup_github_secrets(public_key: str, github_token: Optional[str] = None) -> Tuple[bool, str]:
     """
     Main function to orchestrate GitHub secrets setup.
