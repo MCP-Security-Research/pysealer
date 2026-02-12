@@ -1,7 +1,7 @@
 """Remove cryptographic pysealer decorators from all functions and classes in a Python file."""
 
 import ast
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 from pathlib import Path
 
 def remove_decorators(file_path: str) -> Tuple[str, bool]:
@@ -59,30 +59,30 @@ def remove_decorators_from_folder(folder_path: str) -> List[str]:
         List of file paths where decorators were removed
     """
     folder = Path(folder_path)
-    
+
     if not folder.is_dir():
         raise NotADirectoryError(f"'{folder_path}' is not a directory")
-    
+
     # Find all Python files recursively
     python_files = list(folder.rglob("*.py"))
-    
+
     if not python_files:
         raise FileNotFoundError(f"No Python files found in '{folder_path}'")
-    
+
     files_modified = []
-    
+
     for py_file in python_files:
         try:
             file_path = str(py_file.resolve())
             modified_code, found = remove_decorators(file_path)
-            
+
             if found:
                 # Write the modified code back to the file
                 with open(file_path, 'w') as f:
                     f.write(modified_code)
                 files_modified.append(file_path)
-        except Exception as e:
+        except Exception:
             # Skip files that can't be processed
             continue
-    
+
     return files_modified

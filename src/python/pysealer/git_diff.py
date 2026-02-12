@@ -27,13 +27,13 @@ def get_file_from_git(file_path: str, ref: str = "HEAD") -> Optional[str]:
             text=True,
             timeout=5
         )
-        
+
         if result.returncode != 0:
             return None
-            
+
         git_root = result.stdout.strip()
         relative_path = Path(file_path).relative_to(git_root)
-        
+
         # Get file content from git
         result = subprocess.run(
             ["git", "show", f"{ref}:{relative_path}"],
@@ -42,11 +42,11 @@ def get_file_from_git(file_path: str, ref: str = "HEAD") -> Optional[str]:
             text=True,
             timeout=5
         )
-        
+
         if result.returncode == 0:
             return result.stdout
         return None
-        
+
     except FileNotFoundError:
         # Git command not found
         return None
@@ -68,19 +68,19 @@ def extract_function_from_source(source_code: str, function_name: str) -> Option
     try:
         tree = ast.parse(source_code)
         lines = source_code.splitlines(keepends=True)
-        
+
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 if node.name == function_name:
                     # Get the source lines for this node
                     start_line = node.lineno
                     end_line = node.end_lineno if node.end_lineno else start_line
-                    
+
                     function_lines = lines[start_line - 1:end_line]
                     function_source = ''.join(function_lines)
-                    
+
                     return function_source, start_line
-        
+
         return None
     except (SyntaxError, AttributeError):
         return None
@@ -111,7 +111,7 @@ def generate_function_diff(
     """
     old_lines = old_source.splitlines(keepends=False)
     new_lines = new_source.splitlines(keepends=False)
-    
+
     # Generate unified diff
     diff = list(difflib.unified_diff(
         old_lines,
@@ -119,22 +119,22 @@ def generate_function_diff(
         lineterm='',
         n=context_lines
     ))
-    
+
     # Skip the header lines (first 3 lines of unified diff)
     if len(diff) > 3:
         diff = diff[3:]
-    
+
     result = []
     current_old_line = old_start_line
     current_new_line = new_start_line
-    
+
     for line in diff:
         if not line:
             continue
-            
+
         prefix = line[0]
         content = line[1:] if len(line) > 1 else ''
-        
+
         if prefix == '-':
             result.append(('-', content, current_old_line))
             current_old_line += 1
@@ -152,19 +152,19 @@ def generate_function_diff(
                 if len(parts) >= 3:
                     old_part = parts[1].lstrip('-')
                     new_part = parts[2].lstrip('+')
-                    
+
                     if ',' in old_part:
                         current_old_line = int(old_part.split(',')[0])
                     else:
                         current_old_line = int(old_part)
-                        
+
                     if ',' in new_part:
                         current_new_line = int(new_part.split(',')[0])
                     else:
                         current_new_line = int(new_part)
             except (ValueError, IndexError):
                 pass
-    
+
     return result
 
 
@@ -203,18 +203,18 @@ def get_function_diff(
     """
     # Get the file from git
     old_file_content = get_file_from_git(file_path)
-    
+
     if not old_file_content:
         return None
-    
+
     # Extract the old version of the function
     old_function = extract_function_from_source(old_file_content, function_name)
-    
+
     if not old_function:
         return None
-    
+
     old_source, old_start_line = old_function
-    
+
     # Generate the diff
     diff = generate_function_diff(
         old_source,
@@ -224,5 +224,5 @@ def get_function_diff(
         new_start_line,
         context_lines=2
     )
-    
+
     return diff if diff else None

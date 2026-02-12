@@ -1,7 +1,6 @@
 """Automatically add cryptographic decorators to all functions and classes in a python file."""
 
 import ast
-import copy
 from pathlib import Path
 from pysealer import generate_signature
 from .setup import get_private_key
@@ -25,7 +24,7 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
 
     # Parse the Python source code into an Abstract Syntax Tree (AST)
     tree = ast.parse(content)
-    
+
     # First pass: Remove existing pysealer decorators
     lines_to_remove = set()
     for node in ast.walk(tree):
@@ -33,7 +32,7 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
             if hasattr(node, 'decorator_list'):
                 for decorator in node.decorator_list:
                     is_pysealer_decorator = False
-                    
+
                     if isinstance(decorator, ast.Name):
                         if decorator.id.startswith("pysealer"):
                             is_pysealer_decorator = True
@@ -47,19 +46,19 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
                                 is_pysealer_decorator = True
                         elif isinstance(func, ast.Name) and func.id.startswith("pysealer"):
                             is_pysealer_decorator = True
-                    
+
                     if is_pysealer_decorator:
                         # Mark this line for removal (convert to 0-indexed)
                         lines_to_remove.add(decorator.lineno - 1)
-    
+
     # Remove the marked lines (in reverse order to preserve indices)
     for line_idx in sorted(lines_to_remove, reverse=True):
         del lines[line_idx]
-    
+
     # Re-parse the content after removing decorators to get updated line numbers
     modified_content = '\n'.join(lines)
     tree = ast.parse(modified_content)
-    
+
     # Build parent map for all nodes
     parent_map = {}
     for parent in ast.walk(tree):
@@ -87,10 +86,10 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
         # Use original source to preserve formatting (quotes, spacing, etc.)
         start_line = node.lineno - 1
         end_line = node.end_lineno if hasattr(node, 'end_lineno') and node.end_lineno else node.lineno
-        
+
         # Get the source lines for this node
         source_lines = lines[start_line:end_line]
-        
+
         # Filter out pysealer decorator lines
         filtered_lines = []
         for line in source_lines:
@@ -99,7 +98,7 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
             if stripped.startswith('@pysealer.') or stripped.startswith('@pysealer'):
                 continue
             filtered_lines.append(line)
-        
+
         function_source = '\n'.join(filtered_lines)
 
         try:
@@ -121,7 +120,7 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
     # If no decorators to add, return original content
     if not decorators_to_add:
         return content, False
-    
+
     # Sort in reverse order to add from bottom to top (preserves line numbers)
     decorators_to_add.sort(reverse=True)
 
@@ -130,7 +129,7 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
         indent = ' ' * col_offset
         decorator_line = f"{indent}@pysealer._{signature}()"
         lines.insert(line_idx, decorator_line)
-    
+
     # Now add 'import pysealer' at the top if not present
     has_import_pysealer = any(
         line.strip() == 'import pysealer' or line.strip().startswith('import pysealer') or line.strip().startswith('from pysealer')
@@ -172,7 +171,7 @@ def add_decorators(file_path: str) -> tuple[str, bool]:
                 else:
                     # Found first non-blank, non-comment, non-docstring line
                     break
-            
+
             lines.insert(insert_at, 'import pysealer')
             # Add blank line after import if the next line isn't blank
             if insert_at + 1 < len(lines) and lines[insert_at + 1].strip() != '':
@@ -195,22 +194,22 @@ def add_decorators_to_folder(folder_path: str) -> list[str]:
         List of file paths where decorators were successfully added
     """
     folder = Path(folder_path)
-    
+
     if not folder.exists():
         raise FileNotFoundError(f"Folder '{folder_path}' does not exist.")
-    
+
     if not folder.is_dir():
         raise NotADirectoryError(f"'{folder_path}' is not a directory.")
-    
+
     # Find all Python files in the folder (recursive)
     python_files = list(folder.rglob('*.py'))
-    
+
     if not python_files:
         raise ValueError(f"No Python files found in '{folder_path}'.")
-    
+
     decorated_files = []
     errors = []
-    
+
     for py_file in python_files:
         try:
             modified_code, has_changes = add_decorators(str(py_file))
@@ -220,9 +219,9 @@ def add_decorators_to_folder(folder_path: str) -> list[str]:
                 decorated_files.append(str(py_file))
         except Exception as e:
             errors.append((str(py_file), str(e)))
-    
+
     if errors:
         error_msg = "\n".join([f"  - {file}: {error}" for file, error in errors])
         raise RuntimeError(f"Failed to decorate some files:\n{error_msg}")
-    
+
     return decorated_files

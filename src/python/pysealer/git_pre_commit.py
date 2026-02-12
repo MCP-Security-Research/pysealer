@@ -9,9 +9,7 @@ The hook can be configured as:
 - Optional: Warnings are shown but commit proceeds
 """
 
-import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -20,10 +18,10 @@ def is_git_repository(path: Optional[Path] = None) -> bool:
     """Check if the current directory or specified path is a git repository."""
     check_path = path or Path.cwd()
     git_dir = check_path / ".git"
-    
+
     if git_dir.exists():
         return True
-    
+
     # Check if we're in a subdirectory of a git repo
     try:
         result = subprocess.run(
@@ -41,7 +39,7 @@ def is_git_repository(path: Optional[Path] = None) -> bool:
 def get_git_root(path: Optional[Path] = None) -> Optional[Path]:
     """Get the root directory of the git repository."""
     check_path = path or Path.cwd()
-    
+
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--show-toplevel"],
@@ -188,19 +186,19 @@ def install_hook(
     # Validate mode
     if mode not in ["mandatory", "optional"]:
         return False, f"Invalid mode '{mode}'. Must be 'mandatory' or 'optional'."
-    
+
     # Find git repository
     git_root = get_git_root(repo_path)
     if not git_root:
         return False, "Not a git repository. Initialize git first with 'git init'."
-    
+
     # Create hooks directory if it doesn't exist
     hooks_dir = git_root / ".git" / "hooks"
     hooks_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Path to pre-commit hook
     hook_path = hooks_dir / "pre-commit"
-    
+
     # Check if hook already exists
     if hook_path.exists():
         # Read existing hook to check if it's ours
@@ -209,14 +207,14 @@ def install_hook(
             return False, f"Pysealer hook already installed at {hook_path}"
         else:
             return False, f"A different pre-commit hook already exists at {hook_path}. Remove it first or merge manually."
-    
+
     # Create and write the hook script
     hook_script = create_hook_script(mode, target_pattern)
     hook_path.write_text(hook_script)
-    
+
     # Make the hook executable
     hook_path.chmod(0o755)
-    
+
     return True, f"Pre-commit hook installed in {mode} mode"
 
 
@@ -233,20 +231,20 @@ def uninstall_hook(repo_path: Optional[Path] = None) -> Tuple[bool, str]:
     git_root = get_git_root(repo_path)
     if not git_root:
         return False, "Not a git repository."
-    
+
     hook_path = git_root / ".git" / "hooks" / "pre-commit"
-    
+
     if not hook_path.exists():
         return False, "No pre-commit hook found."
-    
+
     # Check if it's our hook
     existing_content = hook_path.read_text()
     if "Pysealer pre-commit hook" not in existing_content:
         return False, "Pre-commit hook exists but is not a pysealer hook. Not removing."
-    
+
     # Remove the hook
     hook_path.unlink()
-    
+
     return True, "Pre-commit hook uninstalled successfully"
 
 
@@ -263,25 +261,25 @@ def get_hook_status(repo_path: Optional[Path] = None) -> Tuple[bool, Optional[st
     git_root = get_git_root(repo_path)
     if not git_root:
         return False, None, None
-    
+
     hook_path = git_root / ".git" / "hooks" / "pre-commit"
-    
+
     if not hook_path.exists():
         return False, None, None
-    
+
     content = hook_path.read_text()
-    
+
     if "Pysealer pre-commit hook" not in content:
         return False, None, None
-    
+
     # Extract mode and pattern from the hook
     mode = None
     pattern = None
-    
+
     for line in content.split("\n"):
         if "mode" in line.lower() and ("MANDATORY" in line or "OPTIONAL" in line):
             mode = "mandatory" if "MANDATORY" in line else "optional"
         if "Target pattern:" in line:
             pattern = line.split("Target pattern:")[-1].strip()
-    
+
     return True, mode, pattern

@@ -62,3 +62,12 @@ test = [
     "pytest-cov>=4.0.0",
     "pytest-asyncio>=0.21.0"
 ]
+lint = [
+    "ruff>=0.0.289"
+]
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W"]
+ignore = []
+target-version = "py38"

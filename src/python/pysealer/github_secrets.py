@@ -74,29 +74,29 @@ def get_repo_info() -> Tuple[str, str]:
     try:
         # Get the git repository from current directory
         repo = git.Repo(search_parent_directories=True)
-        
+
         # Try to get the origin remote
         if 'origin' not in repo.remotes:
             raise ValueError("No 'origin' remote found in git repository")
-        
+
         remote_url = repo.remotes.origin.url
-        
+
         # Parse SSH format: git@github.com:owner/repo.git
         ssh_pattern = r'git@github\.com:([^/]+)/(.+?)(?:\.git)?$'
         ssh_match = re.match(ssh_pattern, remote_url)
         if ssh_match:
             owner, repo_name = ssh_match.groups()
             return owner, repo_name
-        
+
         # Parse HTTPS format: https://github.com/owner/repo.git
         https_pattern = r'https://github\.com/([^/]+)/(.+?)(?:\.git)?$'
         https_match = re.match(https_pattern, remote_url)
         if https_match:
             owner, repo_name = https_match.groups()
             return owner, repo_name
-        
+
         raise RuntimeError(f"Could not parse GitHub repository from remote URL: {remote_url}")
-        
+
     except git.InvalidGitRepositoryError:
         raise ValueError("Not in a git repository. Please run this command from within a git repository.")
     except git.GitCommandError as e:
@@ -121,7 +121,7 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
     try:
         # Initialize GitHub client
         g = Github(token)
-        
+
         # First, verify token has access by getting user info
         try:
             user = g.get_user()
@@ -130,13 +130,13 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
             if auth_error.status == 401:
                 raise Exception("Authentication failed. Your GitHub token is invalid or expired.")
             raise
-        
+
         # Get the repository
         repo = g.get_repo(f"{owner}/{repo_name}")
-        
+
         # Create or update the secret (actions secrets are at repository level)
         repo.create_secret(secret_name, secret_value, secret_type="actions")
-        
+
     except GithubException as e:
         if e.status == 401:
             raise Exception("Authentication failed. Please check your GitHub token is valid.")
@@ -180,16 +180,16 @@ def setup_github_secrets(public_key: str, github_token: Optional[str] = None) ->
     token = github_token or os.getenv("GITHUB_TOKEN")
     if not token:
         return False, "No GitHub token provided. Use --github-token or set GITHUB_TOKEN environment variable."
-    
+
     try:
         # Get repository information
         owner, repo_name = get_repo_info()
-        
+
         # Upload the secret
         add_secret_to_github(token, owner, repo_name, "PYSEALER_PUBLIC_KEY", validated_public_key)
-        
+
         return True, f"Successfully added PYSEALER_PUBLIC_KEY to {owner}/{repo_name}"
-        
+
     except ValueError as e:
         return False, f"Repository detection failed: {e}"
     except RuntimeError as e:
