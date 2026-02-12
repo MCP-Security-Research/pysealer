@@ -1,15 +1,19 @@
 # pysealer
 
-Cryptographically sign Python functions and classes for defense-in-depth security
+[![PyPI version](https://img.shields.io/pypi/v/pysealer)](https://pypi.org/project/pysealer/)
+[![License](https://img.shields.io/github/license/MCP-Security-Research/pysealer)](LICENSE)
+[![Python version](https://img.shields.io/pypi/pyversions/pysealer)](https://pypi.org/project/pysealer/)
 
-> 💡 **code version controls code**
+> 💡 **Cryptographically sign Python functions and classes for defense-in-depth security**
 
-- 🦀 Built with the [maturin build system](https://www.maturin.rs/) for easy Rust-Python packaging
-- 🔗 [PyO3](https://pyo3.rs/v0.27.1/index.html) bindings for seamless Python-Rust integration
-- 🔏 [Ed25519](https://docs.rs/ed25519-dalek/latest/ed25519_dalek/) signatures to ensure code integrity and authorship
-- 🖥️ [Typer](https://typer.tiangolo.com/) for a clean and user-friendly command line interface
+- 🦀 Built with the [maturin build system](https://www.maturin.rs/) for seamless Rust-Python packaging
+- 🐍 Easily installable via pip for quick integration into your Python projects
+- 🧩 Leverages Python decorators as cryptographic signatures to ensure code integrity
+- 🔏 Powered by [Ed25519](https://docs.rs/ed25519-dalek/latest/ed25519_dalek/) cryptographic signatures
 
-Pysealer helps you maintain code integrity by automatically adding cryptographic signatures to your Python functions and classes. Each function or class receives a unique decorator containing a cryptographic signature that verifies both authorship and integrity, making it easy to detect unauthorized code modifications.
+Pysealer helps maintain code integrity by automatically adding `@pysealer._<signature>()` decorators containing signed representations of an underlying Python functions code.
+
+Pysealer takes the unique approach of having Python decorators store checksums that represent function code. By repurposing decorators for a novel use, it ensures that any unauthorized modifications to Python functions are immediately detectable.
 
 ## Table of Contents
 
