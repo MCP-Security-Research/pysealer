@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 from typing import Optional
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv, set_key, dotenv_values
 from pysealer import generate_keypair
 
 
@@ -56,9 +56,10 @@ def setup_keypair(env_path: Optional[str | Path] = None):
     
     # Check if keys already exist
     if env_path.exists():
-        load_dotenv(env_path)
-        existing_private = os.getenv("PYSEALER_PRIVATE_KEY")
-        existing_public = os.getenv("PYSEALER_PUBLIC_KEY")
+        # Read directly from file to avoid stale values from process environment
+        env_values = dotenv_values(str(env_path))
+        existing_private = env_values.get("PYSEALER_PRIVATE_KEY")
+        existing_public = env_values.get("PYSEALER_PUBLIC_KEY")
         
         if existing_private or existing_public:
             raise ValueError(f"Keys already exist in {env_path} Cannot overwrite existing keys.")
@@ -76,7 +77,7 @@ def setup_keypair(env_path: Optional[str | Path] = None):
     return public_key_hex, private_key_hex
 
 
-def get_public_key(env_path: Optional[str | Path] = None) -> str:
+def get_public_key(env_path: Optional[str | Path] = None, prefer_environment: bool = True) -> str:
     """
     Retrieve the public key from environment variables or .env file.
     
@@ -85,6 +86,8 @@ def get_public_key(env_path: Optional[str | Path] = None) -> str:
     
     Args:
         env_path: Optional path to .env file. If None, searches from current directory upward.
+        prefer_environment: If True, return PYSEALER_PUBLIC_KEY from environment when present.
+            If False, always read from the specified .env file.
     
     Returns:
         str: The public key hex string
@@ -94,11 +97,12 @@ def get_public_key(env_path: Optional[str | Path] = None) -> str:
         ValueError: If PYSEALER_PUBLIC_KEY not found in .env file
     """
     # Check if PYSEALER_PUBLIC_KEY is available in environment first (CI/CD scenario)
-    public_key_from_env = os.getenv("PYSEALER_PUBLIC_KEY")
-    
-    # If we have the key in environment, use it (works in CI without .env file)
-    if public_key_from_env:
-        return public_key_from_env
+    if prefer_environment:
+        public_key_from_env = os.getenv("PYSEALER_PUBLIC_KEY")
+        
+        # If we have the key in environment, use it (works in CI without .env file)
+        if public_key_from_env:
+            return public_key_from_env.strip().strip("\"'")
     
     # Otherwise, look for .env file
     # Determine .env location
@@ -112,16 +116,14 @@ def get_public_key(env_path: Optional[str | Path] = None) -> str:
         raise FileNotFoundError(f"No .env file found at {env_path} and PYSEALER_PUBLIC_KEY not in environment. "
                                "Run 'pysealer init' first or set PYSEALER_PUBLIC_KEY environment variable.")
     
-    # Load environment variables from .env
-    load_dotenv(env_path)
+    # Read directly from .env to avoid mutating global process env
+    env_values = dotenv_values(str(env_path))
+    public_key = env_values.get("PYSEALER_PUBLIC_KEY")
     
-    # Get public key
-    public_key = os.getenv("PYSEALER_PUBLIC_KEY")
-    
-    if public_key is None:
+    if not public_key:
         raise ValueError(f"PYSEALER_PUBLIC_KEY not found in {env_path}. Run 'pysealer init' first.")
     
-    return public_key
+    return str(public_key).strip().strip("\"'")
 
 
 def get_private_key(env_path: Optional[str | Path] = None) -> str:

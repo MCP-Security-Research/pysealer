@@ -97,7 +97,7 @@ def init(
         setup_keypair(env_path)
         # Ensure the public key matches the .env file exactly
         from .setup import get_public_key
-        public_key = get_public_key(env_path)
+        public_key = get_public_key(env_path, prefer_environment=False)
         typer.echo(typer.style("Successfully initialized pysealer!", fg=typer.colors.BLUE, bold=True))
         typer.echo(f"🔑 Keypair generated and stored in {env_path}")
         typer.echo("🔍 Keep your .env file secure and add it to .gitignore")
