@@ -20,7 +20,7 @@ Pysealer takes the unique approach of having Python decorators store checksums t
 1. [Getting Started](#getting-started)
 2. [Usage](#usage)
 3. [How It Works](#how-it-works)
-4. [Model Context Protocol (MCP) Security Use Cases](#model-context-protocol-mcp-security-use-cases)
+4. [Developer Use Case](#developer-use-case)
 5. [Contributing](#contributing)
 6. [License](#license)
 
@@ -35,16 +35,16 @@ uv pip install pysealer
 ## Usage
 
 ```shell
-pysealer init [ENV_FILE]         # Initialize the pysealer tool by generating and saving keys to an ENV_FILE (default: .env)
-pysealer decorate <file.py>...   # Add cryptographic decorators to all functions/classes in one or more .py files
-pysealer check <file.py>...      # Verify the integrity and validity of pysealer decorators in one or more .py files
-pysealer remove <file.py>...     # Remove all pysealer decorators from one or more .py files
-pysealer --help                  # Show all available commands and options
+pysealer init [OPTIONS] [ENV_FILE]         # Initialize pysealer with an .env file and optionally upload public key to GitHub
+pysealer lock <file.py|folder>            # Add decorators to all functions and classes in a Python file or all Python files in a folder
+pysealer check <file.py|folder>           # Check the integrity of decorators in a Python file or all Python files in a folder
+pysealer remove <file.py|folder>          # Remove pysealer decorators from all functions and classes in a Python file or all Python files in a folder
+pysealer --help                           # Show all available commands and options
 ```
 
 ## How It Works
 
-Pysealer works by automatically injecting cryptographic decorators into your Python functions and classes. Here's how the process works:
+Pysealer ensures the integrity of your Python code by embedding cryptographic signatures into decorators. These signatures act as checksums, making it easy to detect unauthorized modifications. Here's how you can use Pysealer in your workflow:
 
 ### Step-by-Step Example
 
@@ -60,10 +60,10 @@ def fibonacci(n):
         return fibonacci(n-1) + fibonacci(n-2)
 ```
 
-#### 1. Decorate the file
+#### 1. Lock the file
 
 ```shell
-pysealer decorate examples/fibonacci.py
+pysealer lock examples/fibonacci.py
 
 Successfully added decorators to 1 file:
   ✓ /path/to/examples/fibonacci.py
@@ -86,10 +86,10 @@ def fibonacci(n):
 pysealer check examples/fibonacci.py
 
 All decorators are valid in 1 file:
-✓ /path/to/examples/fibonacci.py: 1 decorators valid
+  ✓ /path/to/examples/fibonacci.py
 ```
 
-#### 3. Tamper with the code (change return 0 to return 42)
+#### 3. Modify the code (change return 0 to return 42)
 
 ```python
 @pysealer._GnCLaWr9B6TD524JZ3v1CENXmo5Drwfgvc9arVagbghQ6hMH4Aqc8whs3Tf57pkTjsAVNDybviW9XG5Eu3JSP6T()
@@ -107,31 +107,43 @@ def fibonacci(n):
 ```shell
 pysealer check examples/fibonacci.py
 
-1/1 decorators failed verification across 1 file:
-  ✗ /path/to/examples/fibonacci.py: 1/1 decorators failed
+1/1 decorator failed in 1 file:
+  ✗ /path/to/examples/fibonacci.py
+    Function 'fibonacci' was modified:
+      8    def fibonacci(n):
+      9        if n <= 0:
+      7   -        return 0
+      10  +        return 42
+      11       elif n == 1:
+      12           return 1
 ```
 
-## Model Context Protocol (MCP) Security Use Cases
+## Developer Use Case
 
-One use case of Pysealer is to protect MCP servers from upstream attacks by cryptographically signing tool functions and their docstrings. Since LLMs rely on docstrings to understand tool behavior, attackers can inject malicious instructions or create fake tools that mimic legitimate ones. Pysealer's signatures ensure tool authenticity and detect tampering because any modification to code or docstrings breaks the signature and flags compromised tools.
+Pysealer is particularly useful for developers building Model Context Protocol (MCP) servers or agentic applications that rely heavily on Python functions to represent tool calls. For example, it can be integrated into Python codebases that heavily rely on Python functions.
 
-- **Detect Version Control Changes**
-  - Automatically detect unauthorized code modifications through cryptographic signatures
-  - Each function's decorator contains a signature based on its code and docstring
-  - Any mismatch between code and signature is immediately flagged
+### Step-by-Step Workflow
 
-- **Defense-in-Depth for Source Control**
-  - Add an additional security layer to version control systems
-  - Complement existing security measures with cryptographic verification
-  - Reduce risk through multiple layers of protection
+1. **Initialize Pysealer:** `pysealer init --github-token <PAT_TOKEN_HERE> --hook-mode <MANDATORY_OR_OPTIONAL> --hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>`
+   - `--github-token <PAT_TOKEN_HERE>`: Specifies the GitHub Personal Access Token (PAT) to authenticate and upload the public cryptography key to your remote GitHub repository.
+   - `--hook-mode <MANDATORY_OR_OPTIONAL>`: Determines whether the pre-commit hook is mandatory (enforced) or optional (can be bypassed).
+   - `--hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>`: Defines the file path pattern (e.g., `examples/*.py`) where Pysealer will add decorators and enforce integrity checks.
+
+2. **Lock Your Code:** `pysealer lock <PATH_DECORATORS_ARE_ADDED_TO>`
+
+3. **Set Up CI/CD Integration:** Configure GitHub Actions or another CI/CD pipeline to automate integrity checks and ensure monitoring for unathorized modifications.
+
+### Why Use Pysealer?
+
+The primary use case for Pysealer is to provide defense-in-depth security. Even if a threat actor gains access to your Git repository permissions, they would still need access to the cryptographic keys stored in secure environment files. By adding additional protections to source code, Pysealer adds another trench that threat actors must bypass to perform an upstream attack. Pysealer can also be combined with other security tools to further enhance your application's security.
 
 ## Contributing
 
 **🙌 Contributions are welcome!**
 
-If you have suggestions, bug reports, or want to help improve Pysealer, feel free to open an [issue](https://github.com/MCP-Security-Research/pysealer/issues) or submit a pull request.
+Before contributing, make sure to review the [CONTRIBUTING.md](CONTRIBUTING.md) document.
 
-All ideas and contributions are appreciated—thanks for helping make pysealer better!
+All ideas and contributions are appreciated—thanks for helping make Pysealer better!
 
 ## License
 
