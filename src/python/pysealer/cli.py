@@ -16,7 +16,7 @@ from pathlib import Path
 import typer
 from typing_extensions import Annotated
 
-from . import __version__
+from . import __version__, generate_signature, verify_signature
 from .setup import setup_keypair
 from .add_decorators import add_decorators, add_decorators_to_folder
 from .check_decorators import check_decorators, check_decorators_in_folder
@@ -94,10 +94,14 @@ def init(
         env_path = Path(env_file)
         
         # Generate and store keypair (will raise error if keys already exist)
-        setup_keypair(env_path)
-        # Ensure the public key matches the .env file exactly
-        from .setup import get_public_key
-        public_key = get_public_key(env_path, prefer_environment=False)
+        public_key, private_key = setup_keypair(env_path)
+
+        # Self-test the generated keypair before any GitHub upload
+        probe_message = "pysealer-keypair-self-test"
+        probe_signature = generate_signature(probe_message, private_key)
+        if not verify_signature(probe_message, probe_signature, public_key):
+            raise RuntimeError("Generated keypair self-test failed. Aborting initialization.")
+
         typer.echo(typer.style("Successfully initialized pysealer!", fg=typer.colors.BLUE, bold=True))
         typer.echo(f"🔑 Keypair generated and stored in {env_path}")
         typer.echo("🔍 Keep your .env file secure and add it to .gitignore")

@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 from typing import Optional
-from dotenv import load_dotenv, set_key, dotenv_values
+from dotenv import set_key, dotenv_values
 from pysealer import generate_keypair
 
 
@@ -146,13 +146,11 @@ def get_private_key(env_path: Optional[str | Path] = None) -> str:
     if not env_path.exists():
         raise FileNotFoundError(f"No .env file found at {env_path}. Run setup_keypair() first.")
     
-    # Load environment variables from .env
-    load_dotenv(env_path)
-    
-    # Get private key
-    private_key = os.getenv("PYSEALER_PRIVATE_KEY")
-    
-    if private_key is None:
+    # Read directly from .env to avoid stale process environment values
+    env_values = dotenv_values(str(env_path))
+    private_key = env_values.get("PYSEALER_PRIVATE_KEY")
+
+    if not private_key:
         raise ValueError(f"PYSEALER_PRIVATE_KEY not found in {env_path}. Run setup_keypair() first.")
-    
-    return private_key
+
+    return str(private_key).strip().strip("\"'")

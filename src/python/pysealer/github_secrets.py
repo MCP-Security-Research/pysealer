@@ -18,6 +18,44 @@ logging.getLogger("github").setLevel(logging.CRITICAL)
 logging.getLogger("urllib3").setLevel(logging.CRITICAL)
 
 
+_BASE58_PATTERN = re.compile(r"^[1-9A-HJ-NP-Za-km-z]+$")
+
+
+def _validate_public_key(public_key: str) -> str:
+    """Validate and normalize a pysealer public key before uploading as a secret."""
+    if public_key is None:
+        raise ValueError("Public key is missing.")
+
+    key = str(public_key).strip().strip("\"'")
+
+    if not key:
+        raise ValueError("Public key is empty.")
+
+    if "\n" in key or "\r" in key:
+        raise ValueError("Public key must be a single-line value without newlines.")
+
+    if key.startswith("_"):
+        raise ValueError("Public key looks like a decorator token (starts with '_'), not a raw key.")
+
+    upper_key = key.upper()
+    if "BEGIN PUBLIC KEY" in upper_key or "END PUBLIC KEY" in upper_key:
+        raise ValueError("Public key appears to be PEM-formatted. Use the raw PYSEALER_PUBLIC_KEY value.")
+
+    if key.startswith("{") or key.endswith("}"):
+        raise ValueError("Public key appears to be JSON. Use only the raw key value.")
+
+    if not _BASE58_PATTERN.fullmatch(key):
+        raise ValueError("Public key is not valid Base58 format.")
+
+    # Ed25519 32-byte Base58 keys are typically 43-44 chars.
+    if len(key) < 43 or len(key) > 44:
+        raise ValueError(
+            f"Public key length {len(key)} is unexpected for pysealer (expected 43-44 characters)."
+        )
+
+    return key
+
+
 def get_repo_info() -> Tuple[str, str]:
     """
     Extract GitHub owner and repository name from git remote URL.
@@ -132,6 +170,12 @@ def setup_github_secrets(public_key: str, github_token: Optional[str] = None) ->
         - success: True if secret was uploaded successfully
         - message: Success or error message
     """
+    # Validate key before any API call
+    try:
+        validated_public_key = _validate_public_key(public_key)
+    except ValueError as e:
+        return False, f"Invalid PYSEALER_PUBLIC_KEY: {e}"
+
     # Get GitHub token
     token = github_token or os.getenv("GITHUB_TOKEN")
     if not token:
@@ -142,7 +186,7 @@ def setup_github_secrets(public_key: str, github_token: Optional[str] = None) ->
         owner, repo_name = get_repo_info()
         
         # Upload the secret
-        add_secret_to_github(token, owner, repo_name, "PYSEALER_PUBLIC_KEY", public_key)
+        add_secret_to_github(token, owner, repo_name, "PYSEALER_PUBLIC_KEY", validated_public_key)
         
         return True, f"Successfully added PYSEALER_PUBLIC_KEY to {owner}/{repo_name}"
         
