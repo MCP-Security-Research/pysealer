@@ -3,7 +3,6 @@
 import os
 import subprocess
 import tempfile
-import pytest
 
 SAMPLE_CODE = """
 def foo():

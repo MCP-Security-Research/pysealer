@@ -3,7 +3,6 @@
 import os
 import subprocess
 import tempfile
-import pytest
 
 def test_pysealer_init_creates_env_file():
     """Test that 'pysealer init' creates a new .env file containing valid PRIVATE_KEY and PUBLIC_KEY entries."""
