@@ -67,32 +67,6 @@ def get_repo_info() -> Tuple[str, str]:
         raise RuntimeError(f"Git error: {e}")
 
 
-def encrypt_secret(public_key: str, secret_value: str) -> str:
-    """
-    Encrypt a secret using GitHub's public key.
-    
-    GitHub requires secrets to be encrypted using the repository's public key
-    before they can be uploaded via the API.
-    
-    Args:
-        public_key: The repository's public key (base64 encoded)
-        secret_value: The secret value to encrypt
-        
-    Returns:
-        str: Base64 encoded encrypted secret
-    """
-    # Convert the public key from base64
-    public_key_bytes = public_key.encode("utf-8")
-    public_key_obj = public.PublicKey(public_key_bytes, encoding.Base64Encoder())
-    
-    # Encrypt the secret using sealed box
-    sealed_box = public.SealedBox(public_key_obj)
-    encrypted = sealed_box.encrypt(secret_value.encode("utf-8"))
-    
-    # Return base64 encoded encrypted secret
-    return encoding.Base64Encoder().encode(encrypted).decode("utf-8")
-
-
 def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: str, secret_value: str) -> None:
     """
     Add or update a secret in GitHub repository.
@@ -124,14 +98,8 @@ def add_secret_to_github(token: str, owner: str, repo_name: str, secret_name: st
         # Get the repository
         repo = g.get_repo(f"{owner}/{repo_name}")
         
-        # Get the repository's public key for encrypting secrets
-        public_key = repo.get_public_key()
-        
-        # Encrypt the secret
-        encrypted_value = encrypt_secret(public_key.key, secret_value)
-        
         # Create or update the secret (actions secrets are at repository level)
-        repo.create_secret(secret_name, encrypted_value, secret_type="actions")
+        repo.create_secret(secret_name, secret_value, secret_type="actions")
         
     except GithubException as e:
         if e.status == 401:
