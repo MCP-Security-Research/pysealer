@@ -127,5 +127,6 @@ Linked Issues: Closes #<issue-number>
 - Increase test coverage by adding more tests for the Python implementation of the tool.
 - Ensure compatibility with `ruff` by resolving any existing issues and maintaining compliance.
 - Explore using Maturin's Sphinx integration to generate comprehensive documentation for the project.
+- Automatically add a GitHub Actions check whenever the `init` command is run. Include an option to enable or disable this feature.
 
 Thank you for contributing to Pysealer! Your efforts help make this project better for everyone.
