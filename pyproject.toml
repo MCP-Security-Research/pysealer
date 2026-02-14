@@ -9,7 +9,7 @@ description = "Cryptographically sign Python functions and classes for defense-i
 authors = [
     {name = "Aidan Dyga"}
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
 keywords = ["rust","python","decorator","cryptography"]
