@@ -16,10 +16,8 @@ __all__ = ["generate_keypair", "generate_signature", "verify_signature"]
 
 # Ensure dummy decorators are registered on import
 from . import dummy_decorators
-import pysealer
 
 # Allow dynamic decorator resolution for @pyseal._<sig>()
-@pysealer._cQVSjccXsbXn1PnNzYZdo5cu4b35pXif93L82iD95y3HM8ozpxkuG4HMHwDtnce66g9BRa6mM924bRseBecLpEx()
 def __getattr__(name):
 	if name.startswith("_"):
 		return dummy_decorators._dummy_decorator
