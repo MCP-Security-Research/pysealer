@@ -11,13 +11,15 @@ so that decorated functions remain importable.
 # Define the rust to python module version and functions
 from ._pysealer import generate_keypair, generate_signature, verify_signature
 
-__version__ = "0.8.9"
+__version__ = "0.9.0"
 __all__ = ["generate_keypair", "generate_signature", "verify_signature"]
 
 # Ensure dummy decorators are registered on import
 from . import dummy_decorators
+import pysealer
 
 # Allow dynamic decorator resolution for @pyseal._<sig>()
+@pysealer._cQVSjccXsbXn1PnNzYZdo5cu4b35pXif93L82iD95y3HM8ozpxkuG4HMHwDtnce66g9BRa6mM924bRseBecLpEx()
 def __getattr__(name):
 	if name.startswith("_"):
 		return dummy_decorators._dummy_decorator
