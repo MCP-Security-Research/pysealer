@@ -1,8 +1,7 @@
 # pysealer
 
-[![PyPI version](https://img.shields.io/pypi/v/pysealer)](https://pypi.org/project/pysealer/)
-[![Python version](https://img.shields.io/pypi/pyversions/pysealer)](https://pypi.org/project/pysealer/)
-[![License](https://img.shields.io/github/license/MCP-Security-Research/pysealer)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/pysealer?cacheSeconds=0)](https://pypi.org/project/pysealer/)
+[![Python version](https://img.shields.io/pypi/pyversions/pysealer?cacheSeconds=0)](https://pypi.org/project/pysealer/)[![License](https://img.shields.io/github/license/MCP-Security-Research/pysealer)](LICENSE)
 
 > 💡 **Cryptographically sign Python functions and classes for defense-in-depth security**
 
