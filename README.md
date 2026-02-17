@@ -158,6 +158,16 @@ pysealer init --github-token <PAT_TOKEN_HERE> --hook-mode <MANDATORY_OR_OPTIONAL
 - `--hook-mode <MANDATORY_OR_OPTIONAL>`: Determines whether the pre-commit hook is mandatory (enforced) or optional (can be bypassed).
 - `--hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>`: Defines the file path pattern (e.g., `examples/*.py`) where Pysealer will add decorators and enforce integrity checks.
 
+#### Pysealer Pre-commit Hook
+
+When you run the `pysealer init` command, a pre-commit hook is automatically set up in your Git repository. This hook ensures that your code is sealed with cryptographic decorators before it is committed and pushed to a remote repository. The pre-commit hook runs the `pysealer lock` command on the specified files or directories, adding the necessary decorators to maintain code integrity.
+
+To bypass the pre-commit hook, you can use the `-n` flag with the `git commit` command:
+
+```shell
+git commit -n -m "Bypass pre-commit hook for emergency fix"
+```
+
 #### Lock Your Code
 
 To lock your code and add cryptographic decorators for the first time, use the following command:
