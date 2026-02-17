@@ -120,18 +120,93 @@ pysealer check examples/fibonacci.py
 
 ## Developer Use Case
 
-Pysealer is particularly useful for developers building Model Context Protocol (MCP) servers or agentic applications that rely heavily on Python functions to represent tool calls. For example, it can be integrated into Python codebases that heavily rely on Python functions.
+Pysealer is particularly useful for developers building Model Context Protocol (MCP) servers or agentic applications that rely heavily on Python functions to represent tool calls. Pysealer's intended and reccommended use is for Python codebases that heavily rely on Python functions.
 
 ### Step-by-Step Workflow
 
-1. **Initialize Pysealer:** `pysealer init --github-token <PAT_TOKEN_HERE> --hook-mode <MANDATORY_OR_OPTIONAL> --hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>`
-   - `--github-token <PAT_TOKEN_HERE>`: Specifies the GitHub Personal Access Token (PAT) to authenticate and upload the public cryptography key to your remote GitHub repository.
-   - `--hook-mode <MANDATORY_OR_OPTIONAL>`: Determines whether the pre-commit hook is mandatory (enforced) or optional (can be bypassed).
-   - `--hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>`: Defines the file path pattern (e.g., `examples/*.py`) where Pysealer will add decorators and enforce integrity checks.
+#### Create a GitHub Personal Access Token (PAT)
 
-2. **Lock Your Code:** `pysealer lock <PATH_DECORATORS_ARE_ADDED_TO>`
+To use Pysealer effectively with GitHub Actions and remote repository secrets, you need to generate a [GitHub Personal Access Token (PAT)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) with the appropriate permissions. Follow these steps:
 
-3. **Set Up CI/CD Integration:** Configure GitHub Actions or another CI/CD pipeline to automate integrity checks and ensure monitoring for unathorized modifications.
+1. **Navigate to GitHub Developer Settings**
+   - Click on your profile picture in the top-right corner.
+   - Select **Settings** from the dropdown menu.
+   - Scroll down and click on **Developer settings** in the left-hand sidebar.
+   - Under **Developer settings**, click on **Personal access tokens**.
+   - Select **Fine-grained tokens**.
+
+2. **Generate a New Token**
+   - Click the **Generate new token** button.
+   - Provide a **token name** and **note** to describe the purpose of the token (e.g., "Pysealer CI/CD Integration").
+   - Set the resource owner and an **expiration date** for the token (e.g., 90 days, or choose "No expiration" if you prefer).
+   - Select the repository you wish to set up Pysealer for.
+   - Under **Select scopes**, check the following permissions:
+     - **`Actions`**: Access to GitHub Actions workflows.
+     - **`Secrets`**: Manage repository secrets.
+     - Additional scopes may be required depending on your use case.
+   - **Copy the token immediately** and save it securely (e.g., in a password manager or `.env` file). You won’t be able to see it again. You can use this token in the terminal to set up Pysealer.
+
+#### Initialize Pysealer
+
+To initialize Pysealer, use the following command:
+
+```bash
+pysealer init --github-token <PAT_TOKEN_HERE> --hook-mode <MANDATORY_OR_OPTIONAL> --hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>
+```
+
+- `--github-token <PAT_TOKEN_HERE>`: Specifies the GitHub Personal Access Token (PAT) to authenticate and upload the public cryptography key to your remote GitHub repository.
+- `--hook-mode <MANDATORY_OR_OPTIONAL>`: Determines whether the pre-commit hook is mandatory (enforced) or optional (can be bypassed).
+- `--hook-pattern <PATH_DECORATORS_ARE_ADDED_TO>`: Defines the file path pattern (e.g., `examples/*.py`) where Pysealer will add decorators and enforce integrity checks.
+
+#### Lock Your Code
+
+To lock your code and add cryptographic decorators for the first time, use the following command:
+
+```bash
+pysealer lock <PATH_DECORATORS_ARE_ADDED_TO>
+```
+
+#### Set Up CI/CD Integration
+
+To automate integrity checks and monitor for unauthorized modifications, configure GitHub Actions or another CI/CD pipeline. Below is an example configuration for GitHub Actions:
+
+```yaml
+name: Pysealer Security Check
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'examples/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'examples/**'
+
+jobs:
+  pysealer-check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install pysealer
+      run: |
+        python -m pip install --upgrade pip
+        pip install pysealer==0.8.9
+
+    - name: Run pysealer check
+      env:
+          PYSEALER_PUBLIC_KEY: ${{ secrets.PYSEALER_PUBLIC_KEY }}
+      run: |
+        pysealer check examples
+```
 
 ### Why Use Pysealer?
 
