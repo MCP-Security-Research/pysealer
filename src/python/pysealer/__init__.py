@@ -11,7 +11,7 @@ so that decorated functions remain importable.
 # Define the rust to python module version and functions
 from ._pysealer import generate_keypair, generate_signature, verify_signature
 
-__version__ = "0.9.1"
+__version__ = "0.9.2"
 __all__ = ["generate_keypair", "generate_signature", "verify_signature"]
 
 # Ensure dummy decorators are registered on import

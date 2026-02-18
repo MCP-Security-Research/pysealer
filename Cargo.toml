@@ -1,6 +1,6 @@
 [package]
 name = "pysealer"
-version = "0.9.1"
+version = "0.9.2"
 edition = "2021"
 description = "Cryptographically sign Python functions and classes for defense-in-depth security."
 license = "MIT"
