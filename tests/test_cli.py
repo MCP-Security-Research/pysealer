@@ -4,6 +4,7 @@ import shutil
 import pytest
 from typer.testing import CliRunner
 from pysealer import cli
+import pysealer
 
 runner = CliRunner()
 
@@ -28,7 +29,7 @@ def test_init_success(monkeypatch, tmp_path):
     assert "Keypair generated" in result.output
     assert "hook installed" in result.output
 
-@pysealer._3fG3EoZ9mnZ9F5jZqtw3rvpboCPTg99mLWkGYacBPYPcVruFq6Q8pYAem9Sskfx1GMMA9GRgNMGg3UinecLBDdQV()
+@pysealer._2SBacuWqStdoQXcpcZdiffJRxcKk5mYp3FrCpdKBsm9s4wscA2G4e8i858NfruGUkQtEJKyMCEfeBq8bS8Dvaigu()
 def test_init_github_token(monkeypatch, tmp_path):
     monkeypatch.setattr(cli, "setup_keypair", lambda env: ("pub", "priv"))
     monkeypatch.setattr(cli, "generate_signature", lambda msg, key: "sig")
@@ -36,15 +37,23 @@ def test_init_github_token(monkeypatch, tmp_path):
     monkeypatch.setattr(cli, "is_git_repository", lambda: True)
     monkeypatch.setattr(cli, "get_hook_status", lambda: (False, None, None))
     monkeypatch.setattr(cli, "install_hook", lambda mode, target_pattern: (True, "hook installed"))
-    @pysealer._p68Qgy3VMEZaLWqS1XVghyAkUduYHRh8Ge7xS5F882SYndoPfEQ8QaVXA6vMiyj3PUCrZsNjQYwcvL73kTKSxUj()
+    @pysealer._4reY9AH2ZxZisCMFufTerviZuYZ4Wkxfgb1UrAGvUDDiKfT9LPSxkbBVRVCrGVMn7bmHoZBR26AMCiYWFTJY1gR7()
     class DummySecrets:
         @staticmethod
         def setup_github_secrets(pub, token):
-            return True, "uploaded"
+            return True, "Successfully added"
+    
+@pysealer._4DYuwUT4UCHM7sZNo5RqcSKuQPhxmHvLUUhwcQZi4GoTZBxtiYJmqte32yWoGnDj5FA85fVwJ3oEBrsyaaJ5cRGb()
+def dummy_generate_keypair():
+    # Return valid-length keys (private, public)
+    priv = "privkey"
+    pub = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmn1opq"  # 44 chars
+    pub = pub[:44]  # Ensure exactly 44 chars
+    return (priv, pub)
     monkeypatch.setitem(cli.__dict__, "github_secrets", DummySecrets)
     result = runner.invoke(cli.app, ["init", str(tmp_path / ".env"), "--github-token", "tok"])
     assert result.exit_code == 0
-    assert "uploaded" in result.output
+    assert "Successfully added" in result.output
 
 @pysealer._hNLY6mz4KHrVp2LEf35x3DWT6AVinM4s7vQZHZVhZkutvc6qtFsuv9sDZxqWzb1y9X3UsR9JDr6LprtuRNMgwum()
 def test_lock_file(monkeypatch, tmp_path):

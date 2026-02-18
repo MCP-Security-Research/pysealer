@@ -1,10 +1,13 @@
 import pytest
 import pysealer.github_secrets as gs
 
-@pysealer._5QtPUp2DBoravxAzV3ajSo3tMgNin7EeKMukfANZk8mL1M82dmfH5RS52gtXvwZyyK4X4UMX3XsZhz3GveV84jum()
+import pysealer
+
+@pysealer._5FZ13CB3NkCvuzFHkEMXSgRBmB7ptXsrK9PDCtWNfcSzPYzQYNMFEoeVJtQA7L1bpV2AK6QF4uNEpFCKF1DJmnKw()
 def test_validate_public_key_valid():
-    # 44-char base58, no special chars
-    key = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz1234"
+    # 44-char base58, valid length
+    key = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmn1opq"[:44]  # 44 chars
+    assert len(key) == 44
     assert gs._validate_public_key(key) == key
 
 @pysealer._3qnKbPzEm2QvMcs1fHx315TgnLczNsyiTneiDb5Xc3jDK31btbNyieFTgKFSUvVLaub5pSmT1qWP4MDM9F2FDUV9()

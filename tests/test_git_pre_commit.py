@@ -5,6 +5,8 @@ import pytest
 from pathlib import Path
 import pysealer.git_pre_commit as gpc
 
+import pysealer
+
 @pysealer._3vkVD3hCsC7F3AGZ5sMECSn9wXASaMZfGnPdY4EcRxp5n7BwYDNgFTkYn6JU5CaevMWs5D3vrqhMX9M4JF95JeJR()
 def test_is_git_repository(tmp_path):
     assert not gpc.is_git_repository(tmp_path)

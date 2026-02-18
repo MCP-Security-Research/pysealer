@@ -3,6 +3,8 @@ import tempfile
 import pytest
 import pysealer.git_diff as gd
 
+import pysealer
+
 @pysealer._5dTUjVuL5GRgnpUWJJYsAPgu22mQh8646QT8Q4kJMUTWuLs9Mu8AZuTpApq2c4qjA29yQ4NzxD5KqR5jTpFt697T()
 def test_extract_function_from_source():
     code = """

@@ -4,6 +4,8 @@ import pytest
 from pathlib import Path
 from pysealer.setup import setup_keypair, get_public_key, get_private_key, _find_env_file
 
+import pysealer
+
 @pysealer._5vRtLQhZ7yKEXgmjKUogpNKvE8fwjGERrZvCswqAnNKX6PCaTm7DNtDUCRe6SNDCy7G9di6BLL6JSDUkVbtRT8K9()
 def dummy_generate_keypair():
     return ("privkey", "pubkey")

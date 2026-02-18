@@ -1,6 +1,8 @@
 import pytest
 from pysealer.remove_decorators import remove_decorators, remove_decorators_from_folder
 
+import pysealer
+
 @pysealer._3vVSKo7ZtzmuEzLQw5vNC6ARUFPEUPKwXiuiXtURkqchQU8Fk6SwceCk4cEr42ifKfnUbctqSb5wSpYZfwRbj8Sn()
 def test_remove_decorators_function(tmp_path):
     code = """
