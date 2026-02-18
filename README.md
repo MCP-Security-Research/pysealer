@@ -192,11 +192,11 @@ on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'examples/**'
+      - 'examples'
   pull_request:
     branches: [ main, develop ]
     paths:
-      - 'examples/**'
+      - 'examples'
 
 jobs:
   pysealer-check:
@@ -205,6 +205,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -214,7 +216,7 @@ jobs:
     - name: Install pysealer
       run: |
         python -m pip install --upgrade pip
-        pip install pysealer==0.8.9
+        pip install pysealer==0.9.2
 
     - name: Run pysealer check
       env:
