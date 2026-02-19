@@ -61,14 +61,13 @@ def test_check_fails_on_tampered_file():
                 "invalid" in result.stdout.lower() or "invalid" in result.stderr.lower()), "Check did not report failure"
 
 def test_check_on_undecorated_file():
-    """Test that 'pysealer check' handles undecorated files gracefully (should not crash)."""
+    """Test that 'pysealer check' returns an error on undecorated files."""
     with tempfile.TemporaryDirectory() as tmpdir:
         file_path = os.path.join(tmpdir, "plain.py")
         with open(file_path, "w") as f:
             f.write(SAMPLE_CODE)
         result = subprocess.run(["pysealer", "check", file_path], capture_output=True, text=True)
-        # Accept either a warning or a pass, but should not crash
-        assert result.returncode == 0 or result.returncode == 1, "pysealer check crashed on undecorated file"
+        assert result.returncode == 1, "pysealer check should fail on undecorated file"
         undecorated_detected = (
             "undecorated" in result.stdout.lower() or "undecorated" in result.stderr.lower() or
             "no decorators" in result.stdout.lower() or "no decorators" in result.stderr.lower() or

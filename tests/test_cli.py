@@ -89,6 +89,31 @@ def test_check_file(monkeypatch, tmp_path):
     assert result.exit_code == 0
     assert "All decorator" in result.output or "All decorators" in result.output
 
+def test_check_file_no_decorators_returns_error(monkeypatch, tmp_path):
+    file = tmp_path / "plain.py"
+    file.write_text("def f():\n return 1\n")
+    monkeypatch.setattr(cli, "check_decorators", lambda path: {"f": {"has_decorator": False, "valid": False}})
+    result = runner.invoke(cli.app, ["check", str(file)])
+    assert result.exit_code == 1
+    assert "No pysealer decorators found in 1 file:" in result.output
+
+def test_check_folder_no_decorators_returns_error(monkeypatch, tmp_path):
+    folder = tmp_path / "pkg"
+    folder.mkdir()
+    (folder / "a.py").write_text("def a():\n return 1\n")
+    monkeypatch.setattr(
+        cli,
+        "check_decorators_in_folder",
+        lambda path: {
+            str(folder / "a.py"): {
+                "a": {"has_decorator": False, "valid": False}
+            }
+        },
+    )
+    result = runner.invoke(cli.app, ["check", str(folder)])
+    assert result.exit_code == 1
+    assert "No pysealer decorators found in folder." in result.output
+
 def test_remove_file(monkeypatch, tmp_path):
     file = tmp_path / "f.py"
     file.write_text("@pysealer._sig()\ndef f():\n return 1\n")
