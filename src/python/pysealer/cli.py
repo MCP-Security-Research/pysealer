@@ -52,6 +52,48 @@ def _format_diff_output(func_name: str, diff_lines):
         typer.echo(line_str)
 
 
+def _format_missing_decorator_output(file_path: str, symbol_name: str, result: dict):
+    """Format and display missing decorator information with exact source lines."""
+    node_type = result.get("node_type")
+    if node_type == "ClassDef":
+        label = "Class"
+    elif node_type == "AsyncFunctionDef":
+        label = "Async function"
+    else:
+        label = "Function"
+
+    typer.echo(
+        typer.style(
+            f"    {label} '{symbol_name}' does not contain a @pysealer decorator:",
+            fg=typer.colors.RED,
+            bold=True,
+        )
+    )
+
+    line_start = result.get("line_start")
+    line_end = result.get("line_end")
+
+    try:
+        with open(file_path, "r") as f:
+            lines = f.readlines()
+
+        if isinstance(line_start, int) and isinstance(line_end, int):
+            for line_num in range(line_start, line_end + 1):
+                if 1 <= line_num <= len(lines):
+                    content = lines[line_num - 1].rstrip("\n")
+                    typer.echo(f"      {line_num:<4} {content}")
+            return
+    except Exception:
+        # Fall back to source from results if file line extraction fails.
+        pass
+
+    source = result.get("source") or ""
+    if source:
+        start = line_start if isinstance(line_start, int) else 1
+        for i, line in enumerate(source.splitlines()):
+            typer.echo(f"      {start + i:<4} {line}")
+
+
 def version_callback(value: bool):
     """Helper function to display version information."""
     if value:
@@ -243,9 +285,9 @@ def check(
             resolved_path = str(path.resolve())
             all_results = check_decorators_in_folder(resolved_path)
 
-            total_decorated = 0
-            total_valid = 0
-            files_with_decorators = []
+            total_checked = 0
+            total_failed = 0
+            files_with_symbols = []
             files_with_issues = []
             files_with_errors = []
 
@@ -257,56 +299,62 @@ def check(
                     files_with_issues.append(file_path)
                     continue
 
-                decorated_count = sum(1 for r in results.values() if r["has_decorator"])
+                checked_count = len(results)
+                missing_count = sum(1 for r in results.values() if not r["has_decorator"])
+                invalid_count = sum(1 for r in results.values() if r["has_decorator"] and not r["valid"])
+                failed_count = missing_count + invalid_count
 
-                # Only count files that have decorators
-                if decorated_count > 0:
-                    valid_count = sum(1 for r in results.values() if r["valid"])
-                    files_with_decorators.append(file_path)
-                    total_decorated += decorated_count
-                    total_valid += valid_count
+                if checked_count > 0:
+                    files_with_symbols.append(file_path)
+                    total_checked += checked_count
+                    total_failed += failed_count
 
-                    # Track files with validation failures
-                    if valid_count < decorated_count:
+                    # Track files with any failures.
+                    if failed_count > 0:
                         files_with_issues.append(file_path)
 
             # Summary header
-            if files_with_errors and total_decorated == 0:
+            if files_with_errors and total_checked == 0:
                 # All files had errors, couldn't check for decorators
                 error_count = len(files_with_errors)
                 file_word = "file" if error_count == 1 else "files"
                 typer.echo(typer.style(f"\nFailed to check decorators in {error_count} {file_word} due to errors.", fg=typer.colors.RED, bold=True))
                 typer.echo(typer.style("Fix the errors above to verify decorators.", fg=typer.colors.YELLOW))
                 raise typer.Exit(code=1)
-            elif total_decorated == 0:
+            elif total_checked == 0:
                 typer.echo(typer.style("No pysealer decorators found in folder.", fg=typer.colors.RED, bold=True))
                 raise typer.Exit(code=1)
-            elif total_valid == total_decorated:
-                file_word = "file" if len(files_with_decorators) == 1 else "files"
-                typer.echo(typer.style(f"All decorators are valid in {len(files_with_decorators)} {file_word}:", fg=typer.colors.BLUE, bold=True))
+            elif total_failed == 0:
+                file_word = "file" if len(files_with_symbols) == 1 else "files"
+                typer.echo(typer.style(f"All decorators are valid in {len(files_with_symbols)} {file_word}:", fg=typer.colors.BLUE, bold=True))
             else:
-                failed_count = total_decorated - total_valid
                 failed_files = len(files_with_issues)
-                decorator_word = "decorator" if failed_count == 1 else "decorators"
+                check_word = "check" if total_failed == 1 else "checks"
                 file_word = "file" if failed_files == 1 else "files"
-                typer.echo(typer.style(f"{failed_count} {decorator_word} failed in {failed_files} {file_word}:", fg=typer.colors.BLUE, bold=True), err=True)
+                typer.echo(typer.style(f"{total_failed} {check_word} failed in {failed_files} {file_word}:", fg=typer.colors.BLUE, bold=True), err=True)
 
-            # File-by-file details - only show files with decorators
-            if total_decorated > 0:
-                for file_path in files_with_decorators:
+            # File-by-file details.
+            if total_checked > 0:
+                for file_path in files_with_symbols:
                     results = all_results[file_path]
                     if "error" in results:
                         continue
 
-                    decorated_count = sum(1 for r in results.values() if r["has_decorator"])
-                    valid_count = sum(1 for r in results.values() if r["valid"])
+                    missing_count = sum(1 for r in results.values() if not r["has_decorator"])
+                    invalid_count = sum(1 for r in results.values() if r["has_decorator"] and not r["valid"])
+                    failed_count = missing_count + invalid_count
 
-                    if valid_count == decorated_count:
+                    if failed_count == 0:
                         typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {file_path}")
                     else:
                         typer.echo(f"  {typer.style('✗', fg=typer.colors.RED)} {file_path}")
 
-                        # Show diff for each failed function
+                        # Show missing-decorator snippets.
+                        for symbol_name, result in results.items():
+                            if not result["has_decorator"]:
+                                _format_missing_decorator_output(file_path, symbol_name, result)
+
+                        # Show diff for each signature validation failure.
                         for func_name, result in results.items():
                             if result["has_decorator"] and not result["valid"]:
                                 if result.get("diff"):
@@ -315,7 +363,7 @@ def check(
             # Exit with error if there were failures or errors
             if files_with_errors:
                 raise typer.Exit(code=1)
-            elif total_decorated > 0 and total_valid < total_decorated:
+            elif total_checked > 0 and total_failed > 0:
                 raise typer.Exit(code=1)
 
         # Handle file path
@@ -325,23 +373,29 @@ def check(
             resolved_path = str(path.resolve())
             results = check_decorators(resolved_path)
 
-            # Return success if all decorated functions are valid
+            # Return success if no definitions are missing decorators and all signatures are valid.
+            checked_count = len(results)
+            missing_count = sum(1 for r in results.values() if not r["has_decorator"])
             decorated_count = sum(1 for r in results.values() if r["has_decorator"])
-            valid_count = sum(1 for r in results.values() if r["valid"])
+            valid_count = sum(1 for r in results.values() if r["has_decorator"] and r["valid"])
+            failed_count = missing_count + (decorated_count - valid_count)
 
-            if decorated_count == 0:
+            if checked_count == 0:
                 typer.echo(typer.style("No pysealer decorators found in 1 file:", fg=typer.colors.RED, bold=True))
                 typer.echo(f"  {typer.style('⊘', fg=typer.colors.RED)} {resolved_path}")
                 raise typer.Exit(code=1)
-            elif valid_count == decorated_count:
+            elif failed_count == 0:
                 decorator_word = "decorator" if decorated_count == 1 else "decorators"
                 typer.echo(typer.style(f"All {decorator_word} are valid in 1 file:", fg=typer.colors.BLUE, bold=True))
                 typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
             else:
-                failed = decorated_count - valid_count
-                decorator_word = "decorator" if decorated_count == 1 else "decorators"
-                typer.echo(typer.style(f"{failed}/{decorated_count} {decorator_word} failed in 1 file:", fg=typer.colors.BLUE, bold=True), err=True)
+                check_word = "check" if failed_count == 1 else "checks"
+                typer.echo(typer.style(f"{failed_count}/{checked_count} {check_word} failed in 1 file:", fg=typer.colors.BLUE, bold=True), err=True)
                 typer.echo(f"  {typer.style('✗', fg=typer.colors.RED)} {resolved_path}")
+
+                for symbol_name, result in results.items():
+                    if not result["has_decorator"]:
+                        _format_missing_decorator_output(resolved_path, symbol_name, result)
 
                 # Show diff for each failed function
                 for func_name, result in results.items():

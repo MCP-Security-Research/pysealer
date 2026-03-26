@@ -39,6 +39,7 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
 
     # Parse the Python source code into an AST
     tree = ast.parse(content)
+    content_lines = content.split('\n')
 
     # Get the public key for verification
     try:
@@ -49,8 +50,8 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
     # Dictionary to store results
     results = {}
 
-    # Iterate through each node in the AST
-    for node in ast.walk(tree):
+    # Iterate through top-level nodes in the module AST.
+    for node in tree.body:
         node_type = type(node).__name__
 
         # Check if this node is a function or class definition
@@ -82,11 +83,18 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
                 "valid": False,
                 "signature": signature_from_decorator,
                 "message": "",
+                "node_type": node_type,
                 "line_start": node.lineno,
                 "line_end": node.end_lineno if hasattr(node, 'end_lineno') and node.end_lineno else node.lineno,
                 "source": "",
                 "diff": None
             }
+
+            # Extract the raw source for display/reporting purposes.
+            start_line = node.lineno - 1
+            end_line = node.end_lineno if hasattr(node, 'end_lineno') and node.end_lineno else node.lineno
+            source_lines = content_lines[start_line:end_line]
+            result["source"] = '\n'.join(source_lines)
 
             if not has_pysealer_decorator:
                 result["message"] = "No pysealer decorator found"
@@ -95,13 +103,6 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
 
             # Extract the source code without pysealer decorators for verification
             # Use original source to preserve formatting (quotes, spacing, etc.)
-            content_lines = content.split('\n')
-            start_line = node.lineno - 1
-            end_line = node.end_lineno if hasattr(node, 'end_lineno') and node.end_lineno else node.lineno
-
-            # Get the source lines for this node
-            source_lines = content_lines[start_line:end_line]
-
             # Filter out pysealer decorator lines
             filtered_lines = []
             for line in source_lines:
@@ -113,7 +114,7 @@ def check_decorators(file_path: str) -> Dict[str, dict]:
 
             function_source = '\n'.join(filtered_lines)
 
-            # Store the source code
+            # Store the canonical source code used for signature verification.
             result["source"] = function_source
 
             # Verify the signature
