@@ -72,6 +72,7 @@ def test_check_on_undecorated_file():
             "undecorated" in result.stdout.lower() or "undecorated" in result.stderr.lower() or
             "no decorators" in result.stdout.lower() or "no decorators" in result.stderr.lower() or
             "not protected" in result.stdout.lower() or "not protected" in result.stderr.lower() or
-            "no pysealer decorators found" in result.stdout.lower() or "no pysealer decorators found" in result.stderr.lower()
+            "no pysealer decorators found" in result.stdout.lower() or "no pysealer decorators found" in result.stderr.lower() or
+            "does not contain a @pysealer decorator" in result.stdout.lower() or "does not contain a @pysealer decorator" in result.stderr.lower()
         )
         assert undecorated_detected, f"Check did not report undecorated file, got: {result.stdout} {result.stderr}"

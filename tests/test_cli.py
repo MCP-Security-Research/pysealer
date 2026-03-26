@@ -92,10 +92,24 @@ def test_check_file(monkeypatch, tmp_path):
 def test_check_file_no_decorators_returns_error(monkeypatch, tmp_path):
     file = tmp_path / "plain.py"
     file.write_text("def f():\n return 1\n")
-    monkeypatch.setattr(cli, "check_decorators", lambda path: {"f": {"has_decorator": False, "valid": False}})
+    monkeypatch.setattr(
+        cli,
+        "check_decorators",
+        lambda path: {
+            "f": {
+                "has_decorator": False,
+                "valid": False,
+                "line_start": 1,
+                "line_end": 2,
+                "node_type": "FunctionDef",
+                "source": "def f():\n return 1",
+            }
+        },
+    )
     result = runner.invoke(cli.app, ["check", str(file)])
     assert result.exit_code == 1
-    assert "No pysealer decorators found in 1 file:" in result.output
+    assert "failed in 1 file" in result.output
+    assert "does not contain a @pysealer decorator" in result.output
 
 def test_check_folder_no_decorators_returns_error(monkeypatch, tmp_path):
     folder = tmp_path / "pkg"
@@ -106,13 +120,21 @@ def test_check_folder_no_decorators_returns_error(monkeypatch, tmp_path):
         "check_decorators_in_folder",
         lambda path: {
             str(folder / "a.py"): {
-                "a": {"has_decorator": False, "valid": False}
+                "a": {
+                    "has_decorator": False,
+                    "valid": False,
+                    "line_start": 1,
+                    "line_end": 2,
+                    "node_type": "FunctionDef",
+                    "source": "def a():\n return 1",
+                }
             }
         },
     )
     result = runner.invoke(cli.app, ["check", str(folder)])
     assert result.exit_code == 1
-    assert "No pysealer decorators found in folder." in result.output
+    assert "failed in 1 file" in result.output
+    assert "does not contain a @pysealer decorator" in result.output
 
 def test_remove_file(monkeypatch, tmp_path):
     file = tmp_path / "f.py"
