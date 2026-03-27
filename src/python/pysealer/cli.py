@@ -388,7 +388,8 @@ def check(
                 typer.echo(typer.style(f"All decorators are valid in 1 file:", fg=typer.colors.BLUE, bold=True))
                 typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
             else:
-                check_word = "check" if failed_count == 1 else "checks"
+                # Ratio output should agree with the denominator (e.g., 1/2 checks).
+                check_word = "check" if checked_count == 1 else "checks"
                 typer.echo(typer.style(f"{failed_count}/{checked_count} {check_word} failed in 1 file:", fg=typer.colors.BLUE, bold=True), err=True)
                 typer.echo(f"  {typer.style('✗', fg=typer.colors.RED)} {resolved_path}")
 
