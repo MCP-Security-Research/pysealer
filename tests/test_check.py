@@ -59,6 +59,10 @@ def test_check_fails_on_tampered_file():
         assert tampered_detected, f"pysealer check should fail or warn on tampered file, got: {result.stdout} {result.stderr}"
         assert ("failed" in result.stdout.lower() or "failed" in result.stderr.lower() or
                 "invalid" in result.stdout.lower() or "invalid" in result.stderr.lower()), "Check did not report failure"
+        combined_output = f"{result.stdout}\n{result.stderr}".lower()
+        assert "1/2 checks failed" in combined_output, (
+            "Single-file ratio summary should use plural 'checks' when 2 symbols are checked"
+        )
 
 def test_check_on_undecorated_file():
     """Test that 'pysealer check' returns an error on undecorated files."""
