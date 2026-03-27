@@ -385,8 +385,7 @@ def check(
                 typer.echo(f"  {typer.style('⊘', fg=typer.colors.RED)} {resolved_path}")
                 raise typer.Exit(code=1)
             elif failed_count == 0:
-                decorator_word = "decorator" if decorated_count == 1 else "decorators"
-                typer.echo(typer.style(f"All {decorator_word} are valid in 1 file:", fg=typer.colors.BLUE, bold=True))
+                typer.echo(typer.style(f"All decorators are valid in 1 file:", fg=typer.colors.BLUE, bold=True))
                 typer.echo(f"  {typer.style('✓', fg=typer.colors.GREEN)} {resolved_path}")
             else:
                 check_word = "check" if failed_count == 1 else "checks"
